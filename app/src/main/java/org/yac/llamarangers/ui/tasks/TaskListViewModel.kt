@@ -4,8 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.yac.llamarangers.data.local.entity.RangerTaskEntity
 import org.yac.llamarangers.data.repository.TaskRepository
@@ -50,28 +53,26 @@ class TaskListViewModel @Inject constructor(
         _filterPriority.value = priority
     }
 
-    val displayed: List<RangerTaskEntity>
-        get() {
-            val showComp = _showCompleted.value
-            val priority = _filterPriority.value
-            return _tasks.value
-                .filter { task ->
-                    if (!showComp && task.isComplete) return@filter false
-                    if (priority != null && task.priority != priority.value) return@filter false
-                    true
-                }
-                .sortedWith(compareBy<RangerTaskEntity> { it.isComplete }
-                    .thenBy { TaskPriority.fromValue(it.priority).sortOrder }
-                    .thenBy { it.dueDate ?: Long.MAX_VALUE }
-                    .thenByDescending { it.createdAt }
-                )
-        }
+    val displayedTasks: StateFlow<List<RangerTaskEntity>> = combine(
+        _tasks, _showCompleted, _filterPriority
+    ) { tasks, showComp, priority ->
+        tasks
+            .filter { task ->
+                if (!showComp && task.isComplete) return@filter false
+                if (priority != null && task.priority != priority.value) return@filter false
+                true
+            }
+            .sortedWith(compareBy<RangerTaskEntity> { it.isComplete }
+                .thenBy { TaskPriority.fromValue(it.priority).sortOrder }
+                .thenBy { it.dueDate ?: Long.MAX_VALUE }
+                .thenByDescending { it.createdAt }
+            )
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val overdueCount: Int
-        get() {
-            val now = System.currentTimeMillis()
-            return _tasks.value.count { !it.isComplete && (it.dueDate ?: Long.MAX_VALUE) < now }
-        }
+    val overdueCountFlow: StateFlow<Int> = _tasks.combine(_showCompleted) { tasks, _ ->
+        val now = System.currentTimeMillis()
+        tasks.count { !it.isComplete && (it.dueDate ?: Long.MAX_VALUE) < now }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     fun toggle(task: RangerTaskEntity) {
         viewModelScope.launch {

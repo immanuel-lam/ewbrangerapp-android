@@ -48,7 +48,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -403,16 +406,22 @@ private fun PhotoThumbCard(filename: String) {
 
     OutlinedCard(modifier = Modifier.size(80.dp)) {
         if (file.exists()) {
-            val bitmap = remember(filename) { BitmapFactory.decodeFile(file.absolutePath) }
+            val bitmap by produceState<android.graphics.Bitmap?>(initialValue = null, key1 = filename) {
+                value = withContext(Dispatchers.IO) {
+                    BitmapFactory.decodeFile(file.absolutePath)
+                }
+            }
             if (bitmap != null) {
                 Image(
-                    bitmap = bitmap.asImageBitmap(),
+                    bitmap = bitmap!!.asImageBitmap(),
                     contentDescription = "Photo",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
             } else {
-                PhotoPlaceholderContent()
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                }
             }
         } else {
             PhotoPlaceholderContent()

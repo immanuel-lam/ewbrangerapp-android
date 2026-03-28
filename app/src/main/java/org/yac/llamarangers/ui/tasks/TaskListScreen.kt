@@ -158,8 +158,8 @@ fun TaskListScreen(
             )
         }
     ) { padding ->
-        val tasks = viewModel.displayed
-        val overdueCount = viewModel.overdueCount
+        val tasks by viewModel.displayedTasks.collectAsState()
+        val overdueCount by viewModel.overdueCountFlow.collectAsState()
 
         if (tasks.isEmpty()) {
             Box(

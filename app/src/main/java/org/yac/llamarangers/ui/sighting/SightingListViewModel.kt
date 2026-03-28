@@ -5,8 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.yac.llamarangers.data.local.entity.SightingLogEntity
 import org.yac.llamarangers.data.repository.RangerRepository
@@ -61,22 +64,21 @@ class SightingListViewModel @Inject constructor(
         _filterVariant.value = variant
     }
 
-    val filtered: List<SightingLogEntity>
-        get() {
-            var result = _sightings.value
-            val query = _searchText.value
-            if (query.isNotEmpty()) {
-                result = result.filter {
-                    it.variant.contains(query, ignoreCase = true) ||
-                            (it.notes?.contains(query, ignoreCase = true) == true)
-                }
+    val filteredSightings: StateFlow<List<SightingLogEntity>> = combine(
+        _sightings, _searchText, _filterVariant
+    ) { sightings, query, variant ->
+        var result = sightings
+        if (query.isNotEmpty()) {
+            result = result.filter {
+                it.variant.contains(query, ignoreCase = true) ||
+                        (it.notes?.contains(query, ignoreCase = true) == true)
             }
-            val variant = _filterVariant.value
-            if (variant != null) {
-                result = result.filter { it.variant == variant.value }
-            }
-            return result
         }
+        if (variant != null) {
+            result = result.filter { it.variant == variant.value }
+        }
+        result
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun delete(sightingId: String) {
         viewModelScope.launch {

@@ -111,7 +111,7 @@ fun SightingListScreen(
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             )
 
-            val filtered = viewModel.filtered
+            val filtered by viewModel.filteredSightings.collectAsState()
 
             if (filtered.isEmpty()) {
                 Box(
