@@ -1,11 +1,11 @@
 package org.yac.llamarangers.ui.more
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,39 +15,39 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CellTower
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.PhoneAndroid
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import org.yac.llamarangers.ui.components.LargeButton
 import org.yac.llamarangers.ui.theme.RangerBlue
 import org.yac.llamarangers.ui.theme.RangerGreen
-import org.yac.llamarangers.ui.theme.RangerOrange
 
 /**
- * End of Day Sync screen with demo animation.
+ * End of Day Sync screen with animated status banner — M3 polish pass.
  * Ports iOS DemoMeshSyncView.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,16 +61,24 @@ fun MeshSyncScreen(
     val showPeers by viewModel.showPeers.collectAsStateWithLifecycle()
     val summary by viewModel.summary.collectAsStateWithLifecycle()
 
-    val bannerColor = when (phase) {
-        SyncPhase.IDLE -> Color.Gray
-        SyncPhase.DISCOVERING -> RangerOrange
-        SyncPhase.SYNCING -> RangerBlue
-        SyncPhase.DONE -> RangerGreen
+    // Animated banner colour: primary=idle, tertiary=discovering, secondary=syncing, green=done
+    val targetBannerColor = when (phase) {
+        SyncPhase.IDLE -> MaterialTheme.colorScheme.primaryContainer
+        SyncPhase.DISCOVERING -> MaterialTheme.colorScheme.tertiaryContainer
+        SyncPhase.SYNCING -> MaterialTheme.colorScheme.secondaryContainer
+        SyncPhase.DONE -> RangerGreen.copy(alpha = 0.15f)
     }
+    val animatedBannerColor by animateColorAsState(
+        targetValue = targetBannerColor,
+        animationSpec = tween(durationMillis = 600),
+        label = "bannerColor"
+    )
 
-    val buttonColor = when (phase) {
+    val bannerTextColor = when (phase) {
+        SyncPhase.IDLE -> MaterialTheme.colorScheme.onPrimaryContainer
+        SyncPhase.DISCOVERING -> MaterialTheme.colorScheme.onTertiaryContainer
+        SyncPhase.SYNCING -> MaterialTheme.colorScheme.onSecondaryContainer
         SyncPhase.DONE -> RangerGreen
-        else -> MaterialTheme.colorScheme.primary
     }
 
     Scaffold(
@@ -91,42 +99,33 @@ fun MeshSyncScreen(
                 .padding(padding)
                 .padding(16.dp)
         ) {
-            // Status banner
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        MaterialTheme.colorScheme.surfaceVariant,
-                        RoundedCornerShape(12.dp)
-                    )
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+            // ── Animated status banner ────────────────────────────────────────
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = animatedBannerColor,
+                shape = MaterialTheme.shapes.medium
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(10.dp)
-                        .clip(CircleShape)
-                        .background(bannerColor)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = viewModel.bannerText,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = bannerTextColor,
+                    modifier = Modifier.padding(16.dp)
                 )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Peers list or placeholder
+            // ── Peer rows ─────────────────────────────────────────────────────
             AnimatedVisibility(visible = showPeers, enter = slideInVertically() + fadeIn()) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         "Nearby Rangers",
                         style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
                     peers.forEach { peer ->
-                        PeerRow(peer = peer)
+                        PeerCard(peer = peer)
                     }
                 }
             }
@@ -155,7 +154,7 @@ fun MeshSyncScreen(
                 Spacer(modifier = Modifier.weight(1f))
             }
 
-            // Summary
+            // ── Summary ───────────────────────────────────────────────────────
             summary?.let { text ->
                 Text(
                     text = text,
@@ -168,62 +167,86 @@ fun MeshSyncScreen(
                 )
             }
 
-            // Start/Stop button
-            LargeButton(
-                title = viewModel.buttonTitle,
-                onClick = { viewModel.onButtonTap() },
-                isEnabled = viewModel.isButtonEnabled,
-                color = buttonColor
-            )
+            // ── Buttons ───────────────────────────────────────────────────────
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                if (phase == SyncPhase.IDLE || phase == SyncPhase.DONE) {
+                    Button(
+                        onClick = { viewModel.onButtonTap() },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (phase == SyncPhase.DONE) RangerGreen
+                            else MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Text(viewModel.buttonTitle)
+                    }
+                } else {
+                    // Discovering or Syncing: show disabled Start + active Stop
+                    Button(
+                        onClick = {},
+                        modifier = Modifier.weight(1f),
+                        enabled = false
+                    ) {
+                        Text(viewModel.buttonTitle)
+                    }
+                    OutlinedButton(
+                        onClick = { /* stop not wired in demo */ },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Stop")
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun PeerRow(peer: PeerInfo) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                MaterialTheme.colorScheme.surfaceVariant,
-                RoundedCornerShape(10.dp)
-            )
-            .padding(12.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                Icons.Default.PhoneAndroid,
-                contentDescription = null,
-                tint = RangerBlue
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = peer.name,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = peer.status,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            if (peer.progress >= 1.0) {
+private fun PeerCard(peer: PeerInfo) {
+    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    Icons.Default.CheckCircle,
-                    contentDescription = "Complete",
-                    tint = RangerGreen
+                    Icons.Default.PhoneAndroid,
+                    contentDescription = null,
+                    tint = RangerBlue
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = peer.name,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = peer.status,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                if (peer.progress >= 1.0) {
+                    Icon(
+                        Icons.Default.CheckCircle,
+                        contentDescription = "Complete",
+                        tint = RangerGreen
+                    )
+                }
+            }
+            if (peer.progress > 0 && peer.progress < 1.0) {
+                Spacer(modifier = Modifier.height(6.dp))
+                LinearProgressIndicator(
+                    progress = { peer.progress.toFloat() },
+                    modifier = Modifier.fillMaxWidth(),
+                    color = RangerBlue
                 )
             }
-        }
-        if (peer.progress > 0 && peer.progress < 1.0) {
-            Spacer(modifier = Modifier.height(6.dp))
-            LinearProgressIndicator(
-                progress = { peer.progress.toFloat() },
-                modifier = Modifier.fillMaxWidth(),
-                color = RangerBlue
-            )
         }
     }
 }

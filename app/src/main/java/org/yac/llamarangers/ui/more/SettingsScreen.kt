@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -23,6 +24,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -42,17 +44,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import org.yac.llamarangers.service.map.OfflineTileManager
-import org.yac.llamarangers.ui.theme.RangerOrange
 import org.yac.llamarangers.ui.theme.RangerRed
 
 /**
- * Settings screen.
+ * Settings screen — M3 polish pass.
  * Ports iOS SettingsView.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -91,138 +91,163 @@ fun SettingsScreen(
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Ranger Profile section
-            SectionHeader("Ranger Profile")
-            SettingsRow("Name", currentRangerName.ifEmpty { "\u2014" })
-            TextButton(
-                onClick = {
-                    editedName = currentRangerName
-                    showEditName = true
-                },
-                modifier = Modifier.padding(horizontal = 16.dp)
-            ) { Text("Edit Name") }
-            TextButton(
-                onClick = { showChangePIN = true },
-                modifier = Modifier.padding(horizontal = 16.dp)
-            ) { Text("Change PIN") }
-
-            HorizontalDivider()
-
-            // Sync section
-            SectionHeader("Sync")
-            SettingsRow(
-                "Pending Records",
-                "$pendingSyncCount",
-                valueColor = if (pendingSyncCount > 0) RangerOrange else null
-            )
-            lastSyncDate?.let { syncTime ->
-                SettingsRow(
-                    "Last Synced",
-                    DateUtils.getRelativeTimeSpanString(
-                        syncTime,
-                        System.currentTimeMillis(),
-                        DateUtils.MINUTE_IN_MILLIS
-                    ).toString()
-                )
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TextButton(
-                    onClick = { viewModel.syncNow() },
-                    enabled = !isSyncing
-                ) { Text("Sync Now") }
-                if (isSyncing) {
-                    Spacer(modifier = Modifier.width(8.dp))
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .height(16.dp)
-                            .width(16.dp),
-                        strokeWidth = 2.dp
+            // ── Ranger Profile ────────────────────────────────────────────────
+            SectionLabel("Ranger Profile")
+            ListItem(
+                headlineContent = { Text("Name") },
+                trailingContent = {
+                    Text(
+                        text = currentRangerName.ifEmpty { "\u2014" },
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-            }
-
+            )
+            HorizontalDivider()
+            ListItem(
+                headlineContent = { Text("Edit Name") },
+                modifier = Modifier.clickableListItem {
+                    editedName = currentRangerName
+                    showEditName = true
+                }
+            )
+            HorizontalDivider()
+            ListItem(
+                headlineContent = { Text("Change PIN") },
+                modifier = Modifier.clickableListItem { showChangePIN = true }
+            )
             HorizontalDivider()
 
-            // Field Conditions section
-            SectionHeader("Field Conditions")
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Recent Rain Event")
-                Switch(
-                    checked = recentRainFlagged,
-                    onCheckedChange = { viewModel.toggleRecentRain() }
-                )
-            }
-
+            // ── Sync ──────────────────────────────────────────────────────────
+            SectionLabel("Sync")
+            ListItem(
+                headlineContent = { Text("Pending Records") },
+                trailingContent = {
+                    Text(
+                        text = "$pendingSyncCount",
+                        color = if (pendingSyncCount > 0)
+                            MaterialTheme.colorScheme.error
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            )
             HorizontalDivider()
-
-            // Offline Maps section
-            SectionHeader("Offline Maps")
-            when (val status = tileStatus) {
-                is OfflineTileManager.TileStatus.Available -> {
-                    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                        Text("Tiles Available (${status.version})")
+            lastSyncDate?.let { syncTime ->
+                ListItem(
+                    headlineContent = { Text("Last Synced") },
+                    trailingContent = {
                         Text(
-                            status.coverage,
-                            style = MaterialTheme.typography.labelSmall,
+                            text = DateUtils.getRelativeTimeSpanString(
+                                syncTime,
+                                System.currentTimeMillis(),
+                                DateUtils.MINUTE_IN_MILLIS
+                            ).toString(),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                }
-                is OfflineTileManager.TileStatus.Unavailable -> {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(Icons.Default.Map, contentDescription = null, tint = RangerRed)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Tiles not downloaded", color = RangerRed)
-                    }
-                }
-                is OfflineTileManager.TileStatus.Downloading -> {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Downloading...")
-                        Spacer(modifier = Modifier.width(8.dp))
-                        LinearProgressIndicator(
-                            progress = { status.progress.toFloat() },
-                            modifier = Modifier.weight(1f)
+                )
+                HorizontalDivider()
+            }
+            ListItem(
+                headlineContent = { Text("Sync Now") },
+                trailingContent = {
+                    if (isSyncing) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .height(16.dp)
+                                .width(16.dp),
+                            strokeWidth = 2.dp
                         )
                     }
+                },
+                modifier = Modifier.clickableListItem(enabled = !isSyncing) {
+                    viewModel.syncNow()
                 }
-                is OfflineTileManager.TileStatus.Checking -> {
-                    Text(
-                        "Checking...",
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                    )
-                }
-            }
-
+            )
             HorizontalDivider()
 
-            // App section
-            SectionHeader("App")
-            SettingsRow("Version", viewModel.appVersion)
-            TextButton(
-                onClick = {
-                    viewModel.logout()
-                    onLoggedOut()
-                },
-                modifier = Modifier.padding(horizontal = 16.dp)
+            // ── Field Conditions ──────────────────────────────────────────────
+            SectionLabel("Field Conditions")
+            ListItem(
+                headlineContent = { Text("Recent Rain Event") },
+                trailingContent = {
+                    Switch(
+                        checked = recentRainFlagged,
+                        onCheckedChange = { viewModel.toggleRecentRain() }
+                    )
+                }
+            )
+            HorizontalDivider()
+
+            // ── Offline Maps ──────────────────────────────────────────────────
+            SectionLabel("Offline Maps")
+            when (val status = tileStatus) {
+                is OfflineTileManager.TileStatus.Available -> {
+                    ListItem(
+                        headlineContent = { Text("Tiles Available (${status.version})") },
+                        supportingContent = { Text(status.coverage) }
+                    )
+                }
+                is OfflineTileManager.TileStatus.Unavailable -> {
+                    ListItem(
+                        headlineContent = {
+                            Text("Tiles not downloaded", color = MaterialTheme.colorScheme.error)
+                        },
+                        leadingContent = {
+                            Icon(
+                                Icons.Default.Map,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    )
+                }
+                is OfflineTileManager.TileStatus.Downloading -> {
+                    ListItem(
+                        headlineContent = { Text("Downloading…") },
+                        trailingContent = {
+                            LinearProgressIndicator(
+                                progress = { status.progress.toFloat() },
+                                modifier = Modifier.width(80.dp)
+                            )
+                        }
+                    )
+                }
+                is OfflineTileManager.TileStatus.Checking -> {
+                    ListItem(headlineContent = { Text("Checking…") })
+                }
+            }
+            HorizontalDivider()
+
+            // ── App ───────────────────────────────────────────────────────────
+            SectionLabel("App")
+            ListItem(
+                headlineContent = { Text("Version") },
+                trailingContent = {
+                    Text(
+                        text = viewModel.appVersion,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            )
+            HorizontalDivider()
+
+            // Destructive actions
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text("Logout", color = RangerRed)
+                TextButton(
+                    onClick = {
+                        viewModel.logout()
+                        onLoggedOut()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Logout", color = MaterialTheme.colorScheme.onErrorContainer)
+                }
             }
         }
     }
@@ -262,34 +287,20 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun SectionHeader(title: String) {
+private fun SectionLabel(title: String) {
     Text(
         text = title,
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 8.dp)
+        modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 4.dp)
     )
 }
 
-@Composable
-private fun SettingsRow(
-    label: String,
-    value: String,
-    valueColor: androidx.compose.ui.graphics.Color? = null
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(label)
-        Text(
-            value,
-            color = valueColor ?: MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
+// Helper: add click semantics to a ListItem modifier
+private fun Modifier.clickableListItem(
+    enabled: Boolean = true,
+    onClick: () -> Unit
+): Modifier = if (enabled) this.clickable(onClick = onClick) else this
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -367,9 +378,7 @@ private fun ChangePINBottomSheet(
                 }) { Text("Cancel") }
                 Spacer(modifier = Modifier.width(8.dp))
                 TextButton(
-                    onClick = {
-                        viewModel.changePIN(oldPIN, newPIN, confirmPIN)
-                    },
+                    onClick = { viewModel.changePIN(oldPIN, newPIN, confirmPIN) },
                     enabled = oldPIN.isNotEmpty() && newPIN.isNotEmpty() && confirmPIN.isNotEmpty()
                 ) { Text("Save") }
             }

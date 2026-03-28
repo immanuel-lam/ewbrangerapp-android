@@ -1,7 +1,6 @@
 package org.yac.llamarangers.ui.more
 
 import android.content.Context
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,13 +11,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -55,7 +55,7 @@ private enum class BiocontrolAnswer(val label: String) {
 }
 
 /**
- * Control protocol decision tree screen.
+ * Control protocol decision tree screen — M3 polish pass.
  * Ports iOS ControlProtocolView.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -91,7 +91,7 @@ fun ControlProtocolScreen(
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Seasonal alerts
             val alerts = SeasonalAlert.activeAlerts(recentRain = recentRain)
@@ -99,33 +99,30 @@ fun ControlProtocolScreen(
                 SeasonalAlertBanner(alert = alert)
             }
 
-            // Step 1: Variant
-            QuestionCard(number = 1, question = "What variant is it?") {
-                VariantPicker(
+            // ── Step 1: Variant ───────────────────────────────────────────────
+            StepCard(number = 1, question = "What variant is it?") {
+                ProtocolVariantPicker(
                     selectedVariant = selectedVariant,
                     onSelect = {
                         selectedVariant = it
-                        // Reset downstream selections
-                        if (it != selectedVariant) {
-                            biocontrolVisible = null
-                        }
+                        if (it != selectedVariant) biocontrolVisible = null
                     }
                 )
             }
 
-            // Step 2: Size (only if variant selected)
+            // ── Step 2: Size ──────────────────────────────────────────────────
             if (selectedVariant != null) {
-                QuestionCard(number = 2, question = "How large is the infestation?") {
-                    SizePicker(
+                StepCard(number = 2, question = "How large is the infestation?") {
+                    ProtocolSizePicker(
                         selectedSize = selectedSize ?: InfestationSize.SMALL,
                         onSelect = { selectedSize = it }
                     )
                 }
             }
 
-            // Step 3: Biocontrol (only for pink variant)
+            // ── Step 3: Biocontrol ────────────────────────────────────────────
             if (selectedVariant?.hasBiocontrolConcern == true) {
-                QuestionCard(number = 3, question = "Are biocontrol insects visible?") {
+                StepCard(number = 3, question = "Are biocontrol insects visible?") {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -142,8 +139,7 @@ fun ControlProtocolScreen(
                                     else MaterialTheme.colorScheme.surfaceVariant,
                                     contentColor = if (isSelected) Color.White
                                     else MaterialTheme.colorScheme.onSurface
-                                ),
-                                shape = RoundedCornerShape(10.dp)
+                                )
                             ) {
                                 Text(answer.label)
                             }
@@ -152,58 +148,52 @@ fun ControlProtocolScreen(
                 }
             }
 
-            // Result card
+            // ── Result card ───────────────────────────────────────────────────
             val variant = selectedVariant
             val size = selectedSize
             if (variant != null && size != null) {
-                ResultCard(variant = variant, biocontrol = biocontrolVisible)
+                ProtocolResultCard(variant = variant, biocontrol = biocontrolVisible)
             }
         }
     }
 }
 
 @Composable
-private fun QuestionCard(
+private fun StepCard(
     number: Int,
     question: String,
     content: @Composable () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                MaterialTheme.colorScheme.surfaceVariant,
-                RoundedCornerShape(12.dp)
-            )
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = "Step $number",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                modifier = Modifier
-                    .background(RangerGreen, RoundedCornerShape(6.dp))
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(question, style = MaterialTheme.typography.titleSmall)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Step number chip
+                AssistChip(
+                    onClick = {},
+                    label = { Text("Step $number") }
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(question, style = MaterialTheme.typography.titleSmall)
+            }
+            content()
         }
-        content()
     }
 }
 
 @Composable
-private fun VariantPicker(
+private fun ProtocolVariantPicker(
     selectedVariant: LantanaVariant?,
     onSelect: (LantanaVariant) -> Unit
 ) {
-    val variants = LantanaVariant.entries
-
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        variants.forEach { variant ->
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        LantanaVariant.entries.forEach { variant ->
             val isSelected = selectedVariant == variant
             Button(
                 onClick = { onSelect(variant) },
@@ -216,8 +206,7 @@ private fun VariantPicker(
                         val lum = 0.2126f * c.red + 0.7152f * c.green + 0.0722f * c.blue
                         if (lum > 0.65f) Color.Black else Color.White
                     } else MaterialTheme.colorScheme.onSurface
-                ),
-                shape = RoundedCornerShape(8.dp)
+                )
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     VariantColourDot(variant = variant, size = 14.dp)
@@ -230,7 +219,7 @@ private fun VariantPicker(
 }
 
 @Composable
-private fun SizePicker(
+private fun ProtocolSizePicker(
     selectedSize: InfestationSize,
     onSelect: (InfestationSize) -> Unit
 ) {
@@ -248,8 +237,7 @@ private fun SizePicker(
                     else MaterialTheme.colorScheme.surface,
                     contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary
                     else MaterialTheme.colorScheme.onSurface
-                ),
-                shape = RoundedCornerShape(8.dp)
+                )
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(size.displayName, style = MaterialTheme.typography.labelMedium)
@@ -266,61 +254,58 @@ private fun SizePicker(
 }
 
 @Composable
-private fun ResultCard(
+private fun ProtocolResultCard(
     variant: LantanaVariant,
     biocontrol: BiocontrolAnswer?
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                MaterialTheme.colorScheme.surfaceVariant,
-                RoundedCornerShape(12.dp)
-            )
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        colors = androidx.compose.material3.CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                Icons.Default.CheckCircle,
-                contentDescription = null,
-                tint = RangerGreen
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                "Recommendation",
-                style = MaterialTheme.typography.titleMedium,
-                color = RangerGreen
-            )
-        }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    tint = RangerGreen
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    "Recommendation",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
 
-        if (biocontrol == BiocontrolAnswer.YES) {
-            Text(
-                "Biocontrol insects detected \u2014 do NOT spray. Allow insects to feed. Monitor in 3\u20134 weeks.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = RangerOrange
-            )
-        } else {
-            variant.controlMethods.forEach { method ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            RangerGreen.copy(alpha = 0.1f),
-                            RoundedCornerShape(8.dp)
-                        )
-                        .padding(12.dp)
-                ) {
-                    Text(
-                        method.displayName,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        method.instructions,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+            if (biocontrol == BiocontrolAnswer.YES) {
+                Text(
+                    "Biocontrol insects detected \u2014 do NOT spray. Allow insects to feed. Monitor in 3\u20134 weeks.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = RangerOrange
+                )
+            } else {
+                variant.controlMethods.forEach { method ->
+                    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Text(
+                                method.displayName,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                method.instructions,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
             }
         }

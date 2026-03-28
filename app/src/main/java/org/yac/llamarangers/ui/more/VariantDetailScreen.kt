@@ -1,6 +1,5 @@
 package org.yac.llamarangers.ui.more
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,31 +12,39 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ContentCut
 import androidx.compose.material.icons.filled.CropSquare
+import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.filled.Park
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.WaterDrop
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextShadow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.yac.llamarangers.domain.model.SeasonalAlert
 import org.yac.llamarangers.domain.model.enums.LantanaVariant
 import org.yac.llamarangers.domain.model.enums.TreatmentMethod
@@ -45,7 +52,7 @@ import org.yac.llamarangers.ui.components.SeasonalAlertBanner
 import org.yac.llamarangers.ui.theme.RangerGreen
 
 /**
- * Variant detail screen showing identifying features and control methods.
+ * Variant detail screen — M3 polish pass.
  * Ports iOS VariantDetailView.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,6 +63,7 @@ fun VariantDetailScreen(
 ) {
     val variant = LantanaVariant.fromValue(variantValue)
     val headerTextColor = if (variant.color.luminance() > 0.65f) Color.Black else Color.White
+    val variantColor = variant.color
 
     Scaffold(
         topBar = {
@@ -73,29 +81,35 @@ fun VariantDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Colour swatch header
+            // ── Full-width header Box (160dp) ─────────────────────────────────
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
-                    .background(
-                        Brush.verticalGradient(
-                            listOf(variant.color, variant.color.copy(alpha = 0.7f))
-                        ),
-                        RoundedCornerShape(12.dp)
-                    ),
+                    .height(160.dp)
+                    .drawBehind {
+                        drawRect(
+                            color = variantColor,
+                            topLeft = Offset.Zero,
+                            size = size
+                        )
+                    },
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = variant.displayName,
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = headerTextColor
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            shadow = TextShadow(
+                                color = Color.Black.copy(alpha = 0.4f),
+                                offset = Offset(1f, 1f),
+                                blurRadius = 4f
+                            )
+                        ),
+                        color = headerTextColor,
+                        fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = "Lantana camara var.",
@@ -106,70 +120,102 @@ fun VariantDetailScreen(
                 }
             }
 
-            // Biocontrol warning banner (pink variant)
-            if (variant.hasBiocontrolConcern) {
-                SeasonalAlertBanner(
-                    alert = SeasonalAlert(
-                        title = "Check for Biocontrol Insects",
-                        message = "During the wet season (Nov\u2013Mar), check for lantana bug before applying chemicals to pink Lantana.",
-                        severity = SeasonalAlert.Severity.WARNING
-                    )
-                )
-            }
-
-            // Identifying features
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Identifying Features", style = MaterialTheme.typography.titleMedium)
-                Text(
-                    variant.distinguishingFeatures,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-
-            // Recommended control methods
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Recommended Control", style = MaterialTheme.typography.titleMedium)
-                variant.controlMethods.forEach { method ->
-                    ControlMethodCard(method = method)
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // ── Biocontrol warning ────────────────────────────────────────
+                if (variant.hasBiocontrolConcern) {
+                    ElevatedCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = androidx.compose.material3.CardDefaults.elevatedCardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer
+                        )
+                    ) {
+                        SeasonalAlertBanner(
+                            alert = SeasonalAlert(
+                                title = "Check for Biocontrol Insects",
+                                message = "During the wet season (Nov\u2013Mar), check for lantana bug before applying chemicals to pink Lantana.",
+                                severity = SeasonalAlert.Severity.WARNING
+                            )
+                        )
+                    }
                 }
+
+                // ── Identifying features ──────────────────────────────────────
+                Text(
+                    text = "Identifying Features",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+
+                // Features as ListItems with bullet icons
+                val features = variant.distinguishingFeatures
+                    .split(".")
+                    .map { it.trim() }
+                    .filter { it.isNotBlank() }
+
+                features.forEach { feature ->
+                    ListItem(
+                        headlineContent = { Text(feature, style = MaterialTheme.typography.bodyMedium) },
+                        leadingContent = {
+                            Icon(
+                                Icons.Default.FiberManualRecord,
+                                contentDescription = null,
+                                modifier = Modifier.size(8.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
+                }
+
+                // ── Control methods ───────────────────────────────────────────
+                Text(
+                    text = "Recommended Control",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                variant.controlMethods.forEach { method ->
+                    ControlMethodOutlinedCard(method = method)
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }
 }
 
 @Composable
-private fun ControlMethodCard(method: TreatmentMethod) {
+private fun ControlMethodOutlinedCard(method: TreatmentMethod) {
     val icon = treatmentMethodIcon(method)
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                MaterialTheme.colorScheme.surfaceVariant,
-                RoundedCornerShape(8.dp)
-            )
-            .padding(12.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = RangerGreen,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
+    OutlinedCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = RangerGreen,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = method.displayName,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
             Text(
-                text = method.displayName,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold
+                text = method.instructions,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = method.instructions,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
 }
 
