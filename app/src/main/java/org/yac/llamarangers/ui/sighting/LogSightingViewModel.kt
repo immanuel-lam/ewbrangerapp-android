@@ -5,8 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.yac.llamarangers.data.repository.SightingRepository
 import org.yac.llamarangers.domain.model.enums.InfestationSize
@@ -53,8 +56,9 @@ class LogSightingViewModel @Inject constructor(
     private val _didSave = MutableStateFlow(false)
     val didSave: StateFlow<Boolean> = _didSave.asStateFlow()
 
-    val canSave: Boolean
-        get() = _capturedLocation.value != null && _selectedVariant.value != null
+    val canSave: StateFlow<Boolean> = combine(_capturedLocation, _selectedVariant) { loc, variant ->
+        loc != null && variant != null
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     val controlRecommendation: String?
         get() {
@@ -98,7 +102,7 @@ class LogSightingViewModel @Inject constructor(
     }
 
     fun save() {
-        if (!canSave) return
+        if (!canSave.value) return
         val location = _capturedLocation.value ?: return
         val variant = _selectedVariant.value ?: return
         val rangerId = authManager.currentRangerId.value?.toString() ?: return

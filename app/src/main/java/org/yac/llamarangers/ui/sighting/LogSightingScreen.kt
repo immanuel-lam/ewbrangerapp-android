@@ -90,6 +90,7 @@ fun LogSightingScreen(
     val isSaving by viewModel.isSaving.collectAsState()
     val saveError by viewModel.saveError.collectAsState()
     val didSave by viewModel.didSave.collectAsState()
+    val canSave by viewModel.canSave.collectAsState()
 
     LaunchedEffect(didSave) {
         if (didSave) onNavigateBack()
@@ -174,7 +175,7 @@ fun LogSightingScreen(
             LargeButton(
                 title = if (isSaving) "Saving…" else "Save Sighting",
                 onClick = { viewModel.save() },
-                isEnabled = viewModel.canSave,
+                isEnabled = canSave,
                 isLoading = isSaving,
                 color = RangerGreen,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
