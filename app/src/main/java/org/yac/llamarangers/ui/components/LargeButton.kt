@@ -20,11 +20,9 @@ import androidx.compose.ui.unit.dp
 import org.yac.llamarangers.ui.theme.RangerGreen
 
 /**
- * Full-width primary action button with loading state.
- * Ports iOS LargeButton component.
- *
- * Uses M3 Button defaults. The [color] parameter allows branded primary actions
- * (defaults to RangerGreen). The shape is the M3 default pill (full rounded).
+ * Full-width M3 FilledButton with optional loading state.
+ * Ports iOS LargeButton. Container defaults to RangerGreen with white content;
+ * shape uses the M3 default pill (FilledButtonTokens.ContainerShape = Full).
  */
 @Composable
 fun LargeButton(
@@ -41,6 +39,7 @@ fun LargeButton(
             .fillMaxWidth()
             .height(56.dp),
         enabled = isEnabled && !isLoading,
+        shape = MaterialTheme.shapes.extraLarge, // M3 full-pill (50dp radius)
         colors = ButtonDefaults.buttonColors(
             containerColor = color,
             contentColor = Color.White,
