@@ -52,6 +52,10 @@ class MapViewModel @Inject constructor(
     private val _zoneSightings = MutableStateFlow<Map<String, List<Pair<Double, Double>>>>(emptyMap())
     val zoneSightings: StateFlow<Map<String, List<Pair<Double, Double>>>> = _zoneSightings.asStateFlow()
 
+    /** Zone ID -> number of sightings linked to that zone. */
+    private val _sightingCountsByZone = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val sightingCountsByZone: StateFlow<Map<String, Int>> = _sightingCountsByZone.asStateFlow()
+
     // --- Map layer toggles ---
     private val _mapType = MutableStateFlow(MapType.SATELLITE)
     val mapType: StateFlow<MapType> = _mapType.asStateFlow()
@@ -119,6 +123,10 @@ class MapViewModel @Inject constructor(
 
             _zoneSnapshots.value = snapshots
             _zoneSightings.value = sightingsMap
+            _sightingCountsByZone.value = _sightings.value
+                .groupBy { it.infestationZoneId ?: "" }
+                .filterKeys { it.isNotEmpty() }
+                .mapValues { (_, v) -> v.size }
 
             if (!_isPlayingTimeline.value) {
                 _timelineDate.value = System.currentTimeMillis()

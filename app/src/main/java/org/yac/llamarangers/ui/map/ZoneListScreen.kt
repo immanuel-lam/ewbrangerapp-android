@@ -52,6 +52,7 @@ fun ZoneListScreen(
     onNavigateToAddZone: () -> Unit = {}
 ) {
     val zones by viewModel.zones.collectAsState()
+    val sightingCounts by viewModel.sightingCountsByZone.collectAsState()
 
     LaunchedEffect(Unit) { viewModel.load() }
 
@@ -83,6 +84,7 @@ fun ZoneListScreen(
             items(zones, key = { it.id }) { zone ->
                 ZoneCard(
                     zone = zone,
+                    sightingCount = sightingCounts[zone.id] ?: 0,
                     onClick = { onNavigateToZoneDetail(zone.id) }
                 )
             }
@@ -93,6 +95,7 @@ fun ZoneListScreen(
 @Composable
 private fun ZoneCard(
     zone: InfestationZoneEntity,
+    sightingCount: Int,
     onClick: () -> Unit
 ) {
     ElevatedCard(
@@ -116,7 +119,7 @@ private fun ZoneCard(
                     style = MaterialTheme.typography.titleMedium
                 )
                 Text(
-                    text = "0 sightings",
+                    text = "$sightingCount ${if (sightingCount == 1) "sighting" else "sightings"}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

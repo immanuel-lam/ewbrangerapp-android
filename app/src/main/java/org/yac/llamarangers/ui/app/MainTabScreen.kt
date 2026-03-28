@@ -1,6 +1,7 @@
 package org.yac.llamarangers.ui.app
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -107,7 +108,9 @@ fun MainTabScreen(
         NavHost(
             navController = navController,
             startDestination = Screen.Map.route,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding)
         ) {
             composable(Screen.Map.route) {
                 MapScreen(

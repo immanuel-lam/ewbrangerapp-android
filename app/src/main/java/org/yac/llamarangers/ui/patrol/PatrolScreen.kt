@@ -61,7 +61,11 @@ fun PatrolScreen(
         }
     ) { padding ->
         if (activePatrol != null) {
-            ActivePatrolScreen(viewModel = viewModel)
+            androidx.compose.foundation.layout.Box(
+                modifier = Modifier.fillMaxSize().padding(padding)
+            ) {
+                ActivePatrolScreen(viewModel = viewModel)
+            }
         } else {
             Column(
                 modifier = Modifier
