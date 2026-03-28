@@ -25,7 +25,7 @@ val OnTertiaryContainer = Color(0xFF2E1F00)        // onTertiaryContainer
 // ── Surface & background ─────────────────────────────────────────────────────
 val SurfaceLight = Color(0xFFFFFBFE)
 val SurfaceDark = Color(0xFF101510)
-val BackgroundLight = Color(0xFFF6F3EE)
+val BackgroundLight = Color(0xFFFFFBFE)
 val BackgroundDark = Color(0xFF101510)
 
 // M3 surface container tones (light)
