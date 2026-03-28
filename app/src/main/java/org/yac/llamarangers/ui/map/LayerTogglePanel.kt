@@ -1,30 +1,24 @@
 package org.yac.llamarangers.ui.map
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DirectionsWalk
+import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import org.yac.llamarangers.ui.theme.RangerBlue
-import org.yac.llamarangers.ui.theme.RangerOrange
-import org.yac.llamarangers.ui.theme.RangerRed
 
 /**
- * Vertical stack of layer toggle icons.
+ * Vertical column of M3 FilterChip layer toggles.
  * Ports iOS LayerToggleView.
+ * Selected chips use primary color fill.
  */
 @Composable
 fun LayerTogglePanel(
@@ -36,53 +30,54 @@ fun LayerTogglePanel(
     onTogglePatrols: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(10.dp))
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f))
-    ) {
-        LayerIconButton(
-            icon = Icons.Default.LocationOn,
-            isOn = showSightings,
-            activeColor = RangerRed,
-            contentDescription = "Sightings",
-            onClick = onToggleSightings
+    Column(modifier = modifier.padding(4.dp)) {
+        FilterChip(
+            selected = showSightings,
+            onClick = onToggleSightings,
+            label = { Text("Sightings") },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = "Sightings layer"
+                )
+            },
+            colors = FilterChipDefaults.filterChipColors(
+                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+            )
         )
-        HorizontalDivider(modifier = Modifier.size(width = 28.dp, height = 1.dp))
-        LayerIconButton(
-            icon = Icons.Default.GridView,
-            isOn = showZones,
-            activeColor = RangerOrange,
-            contentDescription = "Zones",
-            onClick = onToggleZones
+        FilterChip(
+            selected = showZones,
+            onClick = onToggleZones,
+            label = { Text("Zones") },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.GridView,
+                    contentDescription = "Zones layer"
+                )
+            },
+            colors = FilterChipDefaults.filterChipColors(
+                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+            )
         )
-        HorizontalDivider(modifier = Modifier.size(width = 28.dp, height = 1.dp))
-        LayerIconButton(
-            icon = Icons.Default.DirectionsWalk,
-            isOn = showPatrols,
-            activeColor = RangerBlue,
-            contentDescription = "Patrols",
-            onClick = onTogglePatrols
-        )
-    }
-}
-
-@Composable
-private fun LayerIconButton(
-    icon: ImageVector,
-    isOn: Boolean,
-    activeColor: Color,
-    contentDescription: String,
-    onClick: () -> Unit
-) {
-    IconButton(
-        onClick = onClick,
-        modifier = Modifier.size(40.dp)
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = contentDescription,
-            tint = if (isOn) activeColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+        FilterChip(
+            selected = showPatrols,
+            onClick = onTogglePatrols,
+            label = { Text("Patrols") },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.DirectionsWalk,
+                    contentDescription = "Patrols layer"
+                )
+            },
+            colors = FilterChipDefaults.filterChipColors(
+                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+            )
         )
     }
 }

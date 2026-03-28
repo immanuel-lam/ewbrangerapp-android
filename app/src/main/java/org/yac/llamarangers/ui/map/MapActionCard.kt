@@ -3,24 +3,19 @@ package org.yac.llamarangers.ui.map
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -49,8 +44,8 @@ data class MapCardAction(
 )
 
 /**
- * Floating card displayed over the map when a marker or zone is tapped.
- * Centered on screen with a material surface.
+ * Floating ElevatedCard displayed over the map when a marker or zone is tapped.
+ * Centered on screen. Title in titleMedium; action rows use ListItem with leadingIcon.
  */
 @Composable
 fun MapActionCard(
@@ -67,71 +62,77 @@ fun MapActionCard(
             ),
         contentAlignment = Alignment.Center
     ) {
-        Surface(
+        ElevatedCard(
             modifier = Modifier
-                .widthIn(max = 240.dp)
+                .widthIn(max = 260.dp)
                 .clickable(enabled = false, onClick = {}),
-            shape = RoundedCornerShape(12.dp),
-            tonalElevation = 8.dp,
-            shadowElevation = 8.dp
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+            colors = CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainer
+            ),
+            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 6.dp)
         ) {
-            Column {
-                // Header
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
+            // Header
+            ListItem(
+                headlineContent = {
                     Text(
                         text = data.title,
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.titleMedium,
                         maxLines = 1
                     )
-                    data.subtitle?.let {
+                },
+                supportingContent = data.subtitle?.let { sub ->
+                    {
                         Text(
-                            text = it,
+                            text = sub,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1
                         )
                     }
-                }
+                },
+                colors = ListItemDefaults.colors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                )
+            )
 
+            if (data.actions.isNotEmpty()) {
                 HorizontalDivider()
+            }
 
-                // Actions
-                data.actions.forEachIndexed { index, action ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                action.handler()
-                                onDismiss()
-                            }
-                            .padding(horizontal = 12.dp, vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        action.icon?.let { icon ->
-                            Icon(
-                                imageVector = icon,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                                tint = if (action.isDestructive) MaterialTheme.colorScheme.error
-                                else MaterialTheme.colorScheme.onSurface
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                        }
+            // Actions
+            data.actions.forEachIndexed { index, action ->
+                val iconColor = if (action.isDestructive) MaterialTheme.colorScheme.error
+                else MaterialTheme.colorScheme.onSurfaceVariant
+                val textColor = if (action.isDestructive) MaterialTheme.colorScheme.error
+                else MaterialTheme.colorScheme.onSurface
+
+                ListItem(
+                    headlineContent = {
                         Text(
                             text = action.label,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = if (action.isDestructive) MaterialTheme.colorScheme.error
-                            else MaterialTheme.colorScheme.onSurface
+                            color = textColor
                         )
+                    },
+                    leadingContent = action.icon?.let { icon ->
+                        {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                tint = iconColor
+                            )
+                        }
+                    },
+                    colors = ListItemDefaults.colors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    modifier = Modifier.clickable {
+                        action.handler()
+                        onDismiss()
                     }
-                    if (index < data.actions.lastIndex) {
-                        HorizontalDivider()
-                    }
+                )
+                if (index < data.actions.lastIndex) {
+                    HorizontalDivider()
                 }
             }
         }
