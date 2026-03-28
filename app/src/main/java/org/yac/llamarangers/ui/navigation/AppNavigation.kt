@@ -137,9 +137,10 @@ fun AppNavigation(
             arguments = listOf(navArgument(Screen.PesticideDetail.ARG_PESTICIDE_ID) { type = NavType.StringType })
         ) { backStackEntry ->
             val pesticideId = backStackEntry.arguments?.getString(Screen.PesticideDetail.ARG_PESTICIDE_ID) ?: ""
+            val currentRangerId by authManager.currentRangerId.collectAsState()
             PesticideDetailScreen(
                 pesticideId = pesticideId,
-                rangerId = "",
+                rangerId = currentRangerId?.toString() ?: "",
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToLogUsage = { navController.popBackStack() }
             )

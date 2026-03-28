@@ -33,7 +33,7 @@ class PatrolViewModel @Inject constructor(
     private val _activeChecklistItems = MutableStateFlow<List<PatrolChecklistItem>>(emptyList())
     val activeChecklistItems: StateFlow<List<PatrolChecklistItem>> = _activeChecklistItems.asStateFlow()
 
-    private val _selectedAreaName = MutableStateFlow(PortStewartZones.patrolAreas[0])
+    private val _selectedAreaName = MutableStateFlow(PortStewartZones.patrolAreas.firstOrNull() ?: "")
     val selectedAreaName: StateFlow<String> = _selectedAreaName.asStateFlow()
 
     init {

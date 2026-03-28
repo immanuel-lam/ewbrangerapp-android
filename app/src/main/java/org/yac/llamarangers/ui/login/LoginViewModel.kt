@@ -9,8 +9,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.yac.llamarangers.data.local.entity.RangerProfileEntity
 import org.yac.llamarangers.data.repository.RangerRepository
-import org.yac.llamarangers.domain.model.enums.RangerRole
-import org.yac.llamarangers.domain.model.enums.SyncStatus
 import org.yac.llamarangers.service.auth.AuthManager
 import java.util.UUID
 import javax.inject.Inject
@@ -43,11 +41,7 @@ class LoginViewModel @Inject constructor(
 
     private fun loadRangers() {
         viewModelScope.launch {
-            val all = rangerRepository.fetchAllRangers()
-            _rangers.value = all
-            if (all.isEmpty()) {
-                seedDemoRangers()
-            }
+            _rangers.value = rangerRepository.fetchAllRangers()
         }
     }
 
@@ -95,28 +89,4 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Seeds 3 demo rangers on first launch, matching iOS behaviour.
-     * Demo PIN: 1234
-     */
-    private fun seedDemoRangers() {
-        viewModelScope.launch {
-            val demoRangers = listOf(
-                Triple("Alice Johnson", RangerRole.SENIOR_RANGER, UUID.randomUUID()),
-                Triple("Bob Smith", RangerRole.RANGER, UUID.randomUUID()),
-                Triple("Carol White", RangerRole.RANGER, UUID.randomUUID())
-            )
-            for ((name, role, _) in demoRangers) {
-                rangerRepository.createRanger(
-                    displayName = name,
-                    role = role,
-                    supabaseUid = UUID.randomUUID().toString()
-                )
-            }
-            // Set the shared PIN
-            authManager.setPIN("1234", UUID.randomUUID())
-            // Reload
-            _rangers.value = rangerRepository.fetchAllRangers()
-        }
-    }
 }
