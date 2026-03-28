@@ -1,25 +1,27 @@
 package org.yac.llamarangers.ui.more
 
 import android.text.format.DateUtils
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -37,14 +39,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.yac.llamarangers.data.local.entity.PesticideStockEntity
 import org.yac.llamarangers.data.local.entity.PesticideUsageRecordEntity
-import org.yac.llamarangers.ui.components.LargeButton
-import org.yac.llamarangers.ui.theme.RangerRed
+import org.yac.llamarangers.ui.theme.RangerGreen
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 /**
- * Pesticide detail screen showing stock info and usage history.
+ * Pesticide detail screen showing stock info and usage history — M3 polish pass.
  * Ports iOS PesticideDetailView.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -99,28 +100,30 @@ fun PesticideDetailScreen(
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Summary card
-            SummaryCard(stock)
-
-            // Log Usage button
-            LargeButton(
-                title = "Log Usage",
-                onClick = { showLogUsage = true }
+            // ── Summary card ──────────────────────────────────────────────────
+            StockSummaryCard(
+                stock = stock,
+                onLogUsage = { showLogUsage = true }
             )
 
-            // Usage history
-            Text("Usage History", style = MaterialTheme.typography.titleMedium)
+            // ── Usage history ─────────────────────────────────────────────────
+            Text(
+                text = "Usage History",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
 
             if (usageHistory.isEmpty()) {
                 Text(
                     "No usage recorded yet.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium
                 )
             } else {
                 usageHistory.forEach { record ->
-                    UsageRow(record = record, unit = stock.unit ?: "L")
+                    UsageRecordCard(record = record, unit = stock.unit ?: "L")
                 }
             }
         }
@@ -139,90 +142,111 @@ fun PesticideDetailScreen(
 }
 
 @Composable
-private fun SummaryCard(stock: PesticideStockEntity) {
+private fun StockSummaryCard(
+    stock: PesticideStockEntity,
+    onLogUsage: () -> Unit
+) {
     val isLow = stock.currentQuantity <= stock.minThreshold
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                MaterialTheme.colorScheme.surfaceVariant,
-                RoundedCornerShape(12.dp)
-            )
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "%.1f %s".format(stock.currentQuantity, stock.unit ?: "L"),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = if (isLow) RangerRed else MaterialTheme.colorScheme.onSurface
+                text = stock.productName ?: "Unknown",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
             )
-            Text(
-                text = "Min: %.1f %s".format(stock.minThreshold, stock.unit ?: "L"),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        if (isLow) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Default.Warning,
-                    contentDescription = null,
-                    tint = RangerRed,
-                    modifier = Modifier.padding(end = 4.dp)
-                )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Bottom
+            ) {
                 Text(
-                    "Low Stock \u2014 reorder required",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = RangerRed
+                    text = "%.1f".format(stock.currentQuantity),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isLow) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.onSurface
                 )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = stock.unit ?: "L",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 2.dp)
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    text = "Min: %.1f %s".format(stock.minThreshold, stock.unit ?: "L"),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+            }
+            if (isLow) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.Warning,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(end = 4.dp)
+                    )
+                    Text(
+                        "Low Stock \u2014 reorder required",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+
+            Button(
+                onClick = onLogUsage,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = RangerGreen)
+            ) {
+                Text("Log Usage")
             }
         }
     }
 }
 
 @Composable
-private fun UsageRow(record: PesticideUsageRecordEntity, unit: String) {
+private fun UsageRecordCard(record: PesticideUsageRecordEntity, unit: String) {
     val dateFormat = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                MaterialTheme.colorScheme.surfaceVariant,
-                RoundedCornerShape(8.dp)
-            )
-            .padding(10.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column {
-            Text(
-                text = "\u2013%.1f %s".format(record.usedQuantity, unit),
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold,
-                color = RangerRed
-            )
-            if (!record.notes.isNullOrBlank()) {
+    OutlinedCard(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = record.notes,
+                    text = "\u2013%.1f %s".format(record.usedQuantity, unit),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.error
+                )
+                if (!record.notes.isNullOrBlank()) {
+                    Text(
+                        text = record.notes,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            record.usedAt?.let { usedAt ->
+                Text(
+                    text = dateFormat.format(Date(usedAt)),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-        }
-        record.usedAt?.let { usedAt ->
-            Text(
-                text = dateFormat.format(Date(usedAt)),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }

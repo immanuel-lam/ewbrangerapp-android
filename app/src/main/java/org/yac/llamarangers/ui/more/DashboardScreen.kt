@@ -1,10 +1,9 @@
 package org.yac.llamarangers.ui.more
 
 import android.text.format.DateUtils
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,16 +12,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,7 +38,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -52,7 +54,7 @@ import org.yac.llamarangers.ui.theme.ZoneUnderTreatment
 
 /**
  * Dashboard screen showing aggregated statistics.
- * Ports iOS DashboardView.
+ * Ports iOS DashboardView — M3 polish pass.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,89 +94,118 @@ fun DashboardScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // Sync status banner
+            // ── Pending sync banner ───────────────────────────────────────────
             if (pendingSyncCount > 0) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(RangerOrange.copy(alpha = 0.1f), RoundedCornerShape(10.dp))
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Icons.Default.ArrowUpward,
-                        contentDescription = null,
-                        tint = RangerOrange
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "$pendingSyncCount records pending sync",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.ArrowUpward,
+                            contentDescription = null,
+                            tint = RangerOrange
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "$pendingSyncCount records pending sync",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
             }
 
-            // Stat cards grid
+            // ── Stats grid ────────────────────────────────────────────────────
+            Text(
+                text = "Statistics",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+
             val statCards = listOf(
-                StatCardData("Total\nSightings", "$totalSightings", RangerRed),
-                StatCardData("This\nMonth", "$sightingsThisMonth", RangerOrange),
-                StatCardData("Treatments\nThis Month", "$treatmentsThisMonth", RangerBlue),
-                StatCardData("Zones\nCleared", "${clearedZonePercent.toInt()}%", RangerGreen),
-                StatCardData(
-                    "Open\nFollow-ups",
-                    "$openFollowUpTasks",
-                    if (openFollowUpTasks > 0) RangerOrange else Color.Gray
-                )
+                Triple("Total\nSightings", "$totalSightings", RangerRed),
+                Triple("This\nMonth", "$sightingsThisMonth", RangerOrange),
+                Triple("Treatments\nThis Month", "$treatmentsThisMonth", RangerBlue),
+                Triple("Zones\nCleared", "${clearedZonePercent.toInt()}%", RangerGreen),
+                Triple("Open\nFollow-ups", "$openFollowUpTasks",
+                    if (openFollowUpTasks > 0) RangerOrange else Color.Gray)
             )
 
             LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
-                modifier = Modifier.height(220.dp),
+                columns = GridCells.Fixed(2),
+                modifier = Modifier.height(300.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                userScrollEnabled = false
             ) {
-                items(statCards) { card ->
-                    StatCard(title = card.title, value = card.value, color = card.color)
+                items(statCards) { (label, value, color) ->
+                    StatCard(label = label, value = value, color = color)
                 }
             }
 
-            // Zone status section
+            // ── Zone status section ───────────────────────────────────────────
             if (zoneStatusCounts.isNotEmpty()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            MaterialTheme.colorScheme.surfaceVariant,
-                            RoundedCornerShape(12.dp)
-                        )
-                        .padding(16.dp)
+                Text(
+                    text = "Zone Status",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(horizontal = 0.dp)
                 ) {
-                    Text("Zones by Status", style = MaterialTheme.typography.titleMedium)
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                    items(zoneStatusCounts.entries.toList()) { (status, count) ->
+                        val iconColor = zoneStatusColor(status)
+                        AssistChip(
+                            onClick = {},
+                            label = {
+                                Text("${status.replaceFirstChar { it.uppercase() }}: $count")
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.CheckCircle,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                    tint = iconColor
+                                )
+                            },
+                            colors = AssistChipDefaults.assistChipColors()
+                        )
+                    }
+                }
+            }
+
+            // ── Per-ranger sighting counts ────────────────────────────────────
+            if (rangerSightingCounts.isNotEmpty()) {
+                Text(
+                    text = "Sightings by Ranger",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        zoneStatusCounts.forEach { (status, count) ->
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .clip(RoundedCornerShape(24.dp))
-                                        .background(zoneStatusColor(status)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "$count",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.White
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(4.dp))
+                        val maxCount = rangerSightingCounts.firstOrNull()?.count ?: 1
+                        rangerSightingCounts.forEach { entry ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 Text(
-                                    text = status.replaceFirstChar { it.uppercase() },
-                                    style = MaterialTheme.typography.labelSmall,
+                                    text = entry.name,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Text(
+                                    text = "${entry.count}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -183,53 +214,7 @@ fun DashboardScreen(
                 }
             }
 
-            // Per-ranger sighting counts
-            if (rangerSightingCounts.isNotEmpty()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            MaterialTheme.colorScheme.surfaceVariant,
-                            RoundedCornerShape(12.dp)
-                        )
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Text("Sightings by Ranger", style = MaterialTheme.typography.titleMedium)
-                    val maxCount = rangerSightingCounts.firstOrNull()?.count ?: 1
-                    rangerSightingCounts.forEach { entry ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = entry.name,
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Text(
-                                text = "${entry.count}",
-                                style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Box(modifier = Modifier.width(80.dp)) {
-                                val fraction = if (maxCount > 0) entry.count.toFloat() / maxCount else 0f
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth(fraction.coerceAtLeast(0.05f))
-                                        .height(8.dp)
-                                        .clip(RoundedCornerShape(3.dp))
-                                        .background(RangerRed.copy(alpha = 0.7f))
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Last sync
+            // ── Last sync ─────────────────────────────────────────────────────
             lastSyncDate?.let { syncTime ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -259,30 +244,29 @@ fun DashboardScreen(
     }
 }
 
-private data class StatCardData(val title: String, val value: String, val color: Color)
-
 @Composable
-private fun StatCard(title: String, value: String, color: Color) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(10.dp))
-            .padding(12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = color
-        )
-        Text(
-            text = title,
-            style = MaterialTheme.typography.labelSmall,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+private fun StatCard(label: String, value: String, color: Color) {
+    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.displayMedium,
+                fontWeight = FontWeight.Bold,
+                color = color
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 
