@@ -67,18 +67,23 @@ class AddTaskViewModel @Inject constructor(
         priority: TaskPriority,
         hasDueDate: Boolean,
         dueDate: Long,
-        onComplete: () -> Unit
+        onComplete: () -> Unit,
+        onError: () -> Unit = {}
     ) {
         val rangerId = authManager.currentRangerId.value?.toString() ?: return
         viewModelScope.launch {
-            taskRepository.createTask(
-                title = title.trim(),
-                notes = notes.ifBlank { null },
-                priority = priority.value,
-                dueDate = if (hasDueDate) dueDate else null,
-                rangerId = rangerId
-            )
-            onComplete()
+            try {
+                taskRepository.createTask(
+                    title = title.trim(),
+                    notes = notes.ifBlank { null },
+                    priority = priority.value,
+                    dueDate = if (hasDueDate) dueDate else null,
+                    rangerId = rangerId
+                )
+                onComplete()
+            } catch (_: Exception) {
+                onError()
+            }
         }
     }
 }
@@ -125,7 +130,8 @@ fun AddTaskScreen(
                                 priority = priority,
                                 hasDueDate = hasDueDate,
                                 dueDate = dueDate,
-                                onComplete = onNavigateBack
+                                onComplete = onNavigateBack,
+                                onError = { isSaving = false }
                             )
                         },
                         enabled = title.trim().isNotEmpty() && !isSaving

@@ -41,6 +41,7 @@ import kotlinx.coroutines.launch
 import org.yac.llamarangers.data.local.entity.InfestationZoneEntity
 import org.yac.llamarangers.data.local.entity.InfestationZoneSnapshotEntity
 import org.yac.llamarangers.data.local.entity.SightingLogEntity
+import org.yac.llamarangers.domain.model.enums.InfestationSize
 import org.yac.llamarangers.data.repository.SightingRepository
 import org.yac.llamarangers.data.repository.ZoneRepository
 import org.yac.llamarangers.domain.model.enums.LantanaVariant
@@ -68,6 +69,9 @@ class ZoneDetailViewModel @Inject constructor(
     private val _zone = MutableStateFlow<InfestationZoneEntity?>(null)
     val zone: StateFlow<InfestationZoneEntity?> = _zone.asStateFlow()
 
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
     private val _snapshots = MutableStateFlow<List<InfestationZoneSnapshotEntity>>(emptyList())
     val snapshots: StateFlow<List<InfestationZoneSnapshotEntity>> = _snapshots.asStateFlow()
 
@@ -84,6 +88,7 @@ class ZoneDetailViewModel @Inject constructor(
             _linkedSightings.value = allSightings
                 .filter { it.infestationZoneId == zoneId }
                 .sortedByDescending { it.createdAt }
+            _isLoading.value = false
         }
     }
 }
@@ -96,12 +101,39 @@ fun ZoneDetailScreen(
     onNavigateBack: () -> Unit = {}
 ) {
     val zone by viewModel.zone.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
     val snapshots by viewModel.snapshots.collectAsState()
     val linkedSightings by viewModel.linkedSightings.collectAsState()
     val dateFormat = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
     val dateTimeFormat = SimpleDateFormat("MMM d, yyyy h:mm a", Locale.getDefault())
 
     LaunchedEffect(zoneId) { viewModel.loadZone(zoneId) }
+
+    if (!isLoading && zone == null) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Zone Detail") },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        }
+                    }
+                )
+            }
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Not found", color = MaterialTheme.colorScheme.error)
+            }
+        }
+        return
+    }
 
     Scaffold(
         topBar = {
@@ -257,7 +289,7 @@ fun ZoneDetailScreen(
                             )
                         }
                         Text(
-                            text = sighting.infestationSize,
+                            text = InfestationSize.fromValue(sighting.infestationSize).displayName,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

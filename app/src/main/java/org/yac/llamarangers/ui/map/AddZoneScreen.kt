@@ -76,13 +76,18 @@ fun AddZoneScreen(
                 actions = {
                     TextButton(
                         onClick = {
+                            if (zoneName.isBlank()) return@TextButton
                             isSaving = true
                             scope.launch {
-                                zoneRepository.createZone(
-                                    name = zoneName.ifBlank { null },
-                                    dominantVariant = selectedVariant
-                                )
-                                onNavigateBack()
+                                try {
+                                    zoneRepository.createZone(
+                                        name = zoneName.ifBlank { null },
+                                        dominantVariant = selectedVariant
+                                    )
+                                    onNavigateBack()
+                                } catch (_: Exception) {
+                                    isSaving = false
+                                }
                             }
                         },
                         enabled = !isSaving

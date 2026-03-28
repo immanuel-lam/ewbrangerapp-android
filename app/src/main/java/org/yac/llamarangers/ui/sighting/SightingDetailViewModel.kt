@@ -37,6 +37,9 @@ class SightingDetailViewModel @Inject constructor(
     private val _sighting = MutableStateFlow<SightingLogEntity?>(null)
     val sighting: StateFlow<SightingLogEntity?> = _sighting.asStateFlow()
 
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
     private val _treatments = MutableStateFlow<List<TreatmentRecordEntity>>(emptyList())
     val treatments: StateFlow<List<TreatmentRecordEntity>> = _treatments.asStateFlow()
 
@@ -52,6 +55,7 @@ class SightingDetailViewModel @Inject constructor(
     private fun loadSighting() {
         viewModelScope.launch {
             _sighting.value = sightingDao.findById(sightingId)
+            _isLoading.value = false
         }
     }
 

@@ -67,6 +67,7 @@ fun SightingDetailScreen(
     onNavigateToTreatmentEntry: (String) -> Unit = {}
 ) {
     val sighting by viewModel.sighting.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
     val treatments by viewModel.treatments.collectAsState()
     val allZones by viewModel.allZones.collectAsState()
     var showZonePicker by remember { mutableStateOf(false) }
@@ -99,7 +100,11 @@ fun SightingDetailScreen(
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Loading…", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (isLoading) {
+                    Text("Loading…", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                } else {
+                    Text("Not found", color = MaterialTheme.colorScheme.error)
+                }
             }
             return@Scaffold
         }
