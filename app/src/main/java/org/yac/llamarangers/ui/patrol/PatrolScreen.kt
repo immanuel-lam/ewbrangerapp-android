@@ -19,10 +19,12 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -42,6 +44,7 @@ import org.yac.llamarangers.resources.PortStewartZones
  * Area picker uses ExposedDropdownMenuBox; "Start Patrol" is a full-width FilledButton.
  * History toggle uses SingleChoiceSegmentedButtonRow.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PatrolScreen(
     viewModel: PatrolViewModel = hiltViewModel()
@@ -52,19 +55,18 @@ fun PatrolScreen(
 
     LaunchedEffect(Unit) { viewModel.load() }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Text(
-            text = "Patrol",
-            style = MaterialTheme.typography.headlineLarge,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
-        )
-
+    Scaffold(
+        topBar = {
+            TopAppBar(title = { Text("Patrol") })
+        }
+    ) { padding ->
         if (activePatrol != null) {
             ActivePatrolScreen(viewModel = viewModel)
         } else {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .padding(padding)
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -131,6 +133,7 @@ fun PatrolScreen(
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun AreaPicker(
     areas: List<String>,
