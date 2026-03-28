@@ -129,30 +129,31 @@ app/src/main/java/org/yac/llamarangers/
 
 ## Requirements
 
-- Android Studio Meerkat or later
+- Android Studio Meerkat or later (Windows, macOS, or Linux)
 - Android SDK 35 (compile), minSdk 26 (Android 8.0+)
-- JDK 17 (use Android Studio's bundled JDR — see below)
+- JDK 17 — Android Studio's bundled JBR works out of the box
 - No external API keys required
+
+---
+
+## Branches
+
+| Branch | Purpose |
+|---|---|
+| `main` | Cross-platform build — works on Windows, macOS, Linux |
+| `macos` | macOS-specific — includes `org.gradle.java.home` workaround for system Java conflicts |
 
 ---
 
 ## Building
 
-### Java version
-
-The project requires JDK 17. If your system Java is newer (e.g. Java 25), add this to `gradle.properties`:
-
-```properties
-org.gradle.java.home=/Applications/Android Studio.app/Contents/jbr/Contents/Home
-```
-
-### Run the app
-
 ```bash
 ./gradlew assembleDebug
 ```
 
-Or open the project in Android Studio and press Run.
+Or open the project in Android Studio and press Run. Android Studio's bundled JBR is used automatically — no extra configuration needed.
+
+> **macOS note:** If you have a newer system Java (e.g. Java 25) that conflicts with the Kotlin Gradle plugin, use the `macos` branch which includes the `org.gradle.java.home` workaround, or set it manually in your local `gradle.properties` (do not commit it).
 
 ---
 
