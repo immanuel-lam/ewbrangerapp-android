@@ -42,7 +42,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextShadow
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.yac.llamarangers.domain.model.SeasonalAlert
@@ -102,7 +102,7 @@ fun VariantDetailScreen(
                     Text(
                         text = variant.displayName,
                         style = MaterialTheme.typography.headlineSmall.copy(
-                            shadow = TextShadow(
+                            shadow = Shadow(
                                 color = Color.Black.copy(alpha = 0.4f),
                                 offset = Offset(1f, 1f),
                                 blurRadius = 4f

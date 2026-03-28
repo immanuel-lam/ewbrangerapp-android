@@ -44,7 +44,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import org.yac.llamarangers.ui.theme.RangerBlue
 import org.yac.llamarangers.ui.theme.RangerGreen
 import org.yac.llamarangers.ui.theme.RangerOrange
 import org.yac.llamarangers.ui.theme.RangerRed
@@ -127,7 +126,7 @@ fun DashboardScreen(
             val statCards = listOf(
                 Triple("Total\nSightings", "$totalSightings", RangerRed),
                 Triple("This\nMonth", "$sightingsThisMonth", RangerOrange),
-                Triple("Treatments\nThis Month", "$treatmentsThisMonth", RangerBlue),
+                Triple("Treatments\nThis Month", "$treatmentsThisMonth", MaterialTheme.colorScheme.primary),
                 Triple("Zones\nCleared", "${clearedZonePercent.toInt()}%", RangerGreen),
                 Triple("Open\nFollow-ups", "$openFollowUpTasks",
                     if (openFollowUpTasks > 0) RangerOrange else Color.Gray)

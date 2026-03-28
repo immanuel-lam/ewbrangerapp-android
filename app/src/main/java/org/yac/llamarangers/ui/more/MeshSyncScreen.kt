@@ -43,7 +43,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import org.yac.llamarangers.ui.theme.RangerBlue
 import org.yac.llamarangers.ui.theme.RangerGreen
 
 /**
@@ -216,7 +215,7 @@ private fun PeerCard(peer: PeerInfo) {
                 Icon(
                     Icons.Default.PhoneAndroid,
                     contentDescription = null,
-                    tint = RangerBlue
+                    tint = MaterialTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -244,7 +243,7 @@ private fun PeerCard(peer: PeerInfo) {
                 LinearProgressIndicator(
                     progress = { peer.progress.toFloat() },
                     modifier = Modifier.fillMaxWidth(),
-                    color = RangerBlue
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
         }
