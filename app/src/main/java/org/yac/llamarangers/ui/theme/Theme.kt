@@ -17,22 +17,22 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val LightColorScheme = lightColorScheme(
-    // Primary — forest green
+    // Primary — forest green (#2D6A4F)
     primary = RangerGreen,
     onPrimary = Color.White,
-    primaryContainer = RangerGreenPale,
-    onPrimaryContainer = RangerGreenOnPale,
-    // Secondary — earthy brown
+    primaryContainer = PrimaryContainer,
+    onPrimaryContainer = OnPrimaryContainer,
+    // Secondary — earthy brown (#6B5D4F)
     secondary = RangerBrown,
     onSecondary = Color.White,
-    secondaryContainer = SecondaryContainerLight,
-    onSecondaryContainer = Color(0xFF2C1600),
-    // Tertiary — informational blue
-    tertiary = RangerBlue,
+    secondaryContainer = SecondaryContainer,
+    onSecondaryContainer = OnSecondaryContainer,
+    // Tertiary — khaki / gold (#A68C5C)
+    tertiary = RangerKhaki,
     onTertiary = Color.White,
-    tertiaryContainer = Color(0xFFCDE5FF),
-    onTertiaryContainer = Color(0xFF001E30),
-    // Error
+    tertiaryContainer = TertiaryContainer,
+    onTertiaryContainer = OnTertiaryContainer,
+    // Error — M3 baseline
     error = RangerRed,
     onError = Color.White,
     errorContainer = RangerErrorContainer,
@@ -65,22 +65,22 @@ private val DarkColorScheme = darkColorScheme(
     primary = RangerGreenLight,
     onPrimary = Color(0xFF00391F),
     primaryContainer = RangerGreenDark,
-    onPrimaryContainer = RangerGreenPale,
+    onPrimaryContainer = PrimaryContainer,
     // Secondary
     secondary = Color(0xFFD5BFA0),
     onSecondary = Color(0xFF3C2200),
     secondaryContainer = SecondaryContainerDark,
-    onSecondaryContainer = SecondaryContainerLight,
+    onSecondaryContainer = SecondaryContainer,
     // Tertiary
-    tertiary = Color(0xFF96CCFF),
-    onTertiary = Color(0xFF003352),
-    tertiaryContainer = Color(0xFF004B73),
-    onTertiaryContainer = Color(0xFFCDE5FF),
+    tertiary = Color(0xFFE5C97E),
+    onTertiary = Color(0xFF3B2800),
+    tertiaryContainer = Color(0xFF543D00),
+    onTertiaryContainer = TertiaryContainer,
     // Error
     error = Color(0xFFFFB4AB),
     onError = Color(0xFF690005),
     errorContainer = Color(0xFF93000A),
-    onErrorContainer = Color(0xFFFFDAD6),
+    onErrorContainer = RangerErrorContainer,
     // Background & surface
     background = BackgroundDark,
     onBackground = Color(0xFFE1E3E0),
@@ -123,8 +123,11 @@ fun LlamaRangersTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.surface.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            // Transparent status bar with light (white) icons to overlay the hero gradient
+            @Suppress("DEPRECATION")
+            window.statusBarColor = Color.Transparent.toArgb()
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
         }
     }
 
