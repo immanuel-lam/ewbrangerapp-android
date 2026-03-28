@@ -14,9 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -132,15 +129,19 @@ fun DashboardScreen(
                     if (openFollowUpTasks > 0) RangerOrange else Color.Gray)
             )
 
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = Modifier.height(300.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                userScrollEnabled = false
-            ) {
-                items(statCards) { (label, value, color) ->
-                    StatCard(label = label, value = value, color = color)
+            statCards.chunked(2).forEach { row ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    row.forEach { (label, value, color) ->
+                        StatCard(
+                            label = label, value = value, color = color,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    // If odd row, fill remaining space
+                    if (row.size == 1) Spacer(modifier = Modifier.weight(1f))
                 }
             }
 
@@ -244,8 +245,8 @@ fun DashboardScreen(
 }
 
 @Composable
-private fun StatCard(label: String, value: String, color: Color) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+private fun StatCard(label: String, value: String, color: Color, modifier: Modifier = Modifier) {
+    ElevatedCard(modifier = modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
