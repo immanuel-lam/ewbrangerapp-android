@@ -1,0 +1,1208 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "0dd49c0adaef1e4d6d30bf5848c68898",
+    "entities": [
+      {
+        "tableName": "sighting_log",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `horizontal_accuracy` REAL NOT NULL, `variant` TEXT NOT NULL, `infestation_size` TEXT NOT NULL, `notes` TEXT, `photo_filenames` TEXT NOT NULL, `device_id` TEXT, `server_id` TEXT, `sync_status` INTEGER NOT NULL, `ranger_id` TEXT, `infestation_zone_id` TEXT, PRIMARY KEY(`id`), FOREIGN KEY(`ranger_id`) REFERENCES `ranger_profile`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`infestation_zone_id`) REFERENCES `infestation_zone`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "latitude",
+            "columnName": "latitude",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "longitude",
+            "columnName": "longitude",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "horizontalAccuracy",
+            "columnName": "horizontal_accuracy",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "variant",
+            "columnName": "variant",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "infestationSize",
+            "columnName": "infestation_size",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "photoFilenames",
+            "columnName": "photo_filenames",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deviceId",
+            "columnName": "device_id",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "serverId",
+            "columnName": "server_id",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "syncStatus",
+            "columnName": "sync_status",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rangerId",
+            "columnName": "ranger_id",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "infestationZoneId",
+            "columnName": "infestation_zone_id",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_sighting_log_ranger_id",
+            "unique": false,
+            "columnNames": [
+              "ranger_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_sighting_log_ranger_id` ON `${TABLE_NAME}` (`ranger_id`)"
+          },
+          {
+            "name": "index_sighting_log_infestation_zone_id",
+            "unique": false,
+            "columnNames": [
+              "infestation_zone_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_sighting_log_infestation_zone_id` ON `${TABLE_NAME}` (`infestation_zone_id`)"
+          },
+          {
+            "name": "index_sighting_log_sync_status",
+            "unique": false,
+            "columnNames": [
+              "sync_status"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_sighting_log_sync_status` ON `${TABLE_NAME}` (`sync_status`)"
+          },
+          {
+            "name": "index_sighting_log_created_at",
+            "unique": false,
+            "columnNames": [
+              "created_at"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_sighting_log_created_at` ON `${TABLE_NAME}` (`created_at`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "ranger_profile",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "ranger_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "infestation_zone",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "infestation_zone_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "treatment_record",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `treatment_date` INTEGER NOT NULL, `method` TEXT NOT NULL, `herbicide_product` TEXT, `outcome_notes` TEXT, `follow_up_date` INTEGER, `photo_filenames` TEXT NOT NULL, `sync_status` INTEGER NOT NULL, `sighting_id` TEXT, `ranger_id` TEXT, `follow_up_task_id` TEXT, PRIMARY KEY(`id`), FOREIGN KEY(`sighting_id`) REFERENCES `sighting_log`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`ranger_id`) REFERENCES `ranger_profile`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`follow_up_task_id`) REFERENCES `ranger_task`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "treatmentDate",
+            "columnName": "treatment_date",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "method",
+            "columnName": "method",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "herbicideProduct",
+            "columnName": "herbicide_product",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "outcomeNotes",
+            "columnName": "outcome_notes",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "followUpDate",
+            "columnName": "follow_up_date",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "photoFilenames",
+            "columnName": "photo_filenames",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "syncStatus",
+            "columnName": "sync_status",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sightingId",
+            "columnName": "sighting_id",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "rangerId",
+            "columnName": "ranger_id",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "followUpTaskId",
+            "columnName": "follow_up_task_id",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_treatment_record_sighting_id",
+            "unique": false,
+            "columnNames": [
+              "sighting_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_treatment_record_sighting_id` ON `${TABLE_NAME}` (`sighting_id`)"
+          },
+          {
+            "name": "index_treatment_record_ranger_id",
+            "unique": false,
+            "columnNames": [
+              "ranger_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_treatment_record_ranger_id` ON `${TABLE_NAME}` (`ranger_id`)"
+          },
+          {
+            "name": "index_treatment_record_follow_up_task_id",
+            "unique": false,
+            "columnNames": [
+              "follow_up_task_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_treatment_record_follow_up_task_id` ON `${TABLE_NAME}` (`follow_up_task_id`)"
+          },
+          {
+            "name": "index_treatment_record_sync_status",
+            "unique": false,
+            "columnNames": [
+              "sync_status"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_treatment_record_sync_status` ON `${TABLE_NAME}` (`sync_status`)"
+          },
+          {
+            "name": "index_treatment_record_treatment_date",
+            "unique": false,
+            "columnNames": [
+              "treatment_date"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_treatment_record_treatment_date` ON `${TABLE_NAME}` (`treatment_date`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "sighting_log",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "sighting_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "ranger_profile",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "ranger_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "ranger_task",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "follow_up_task_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "ranger_task",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `title` TEXT NOT NULL, `notes` TEXT, `priority` TEXT NOT NULL, `due_date` INTEGER, `is_complete` INTEGER NOT NULL, `completed_at` INTEGER, `sync_status` INTEGER NOT NULL, `assigned_ranger_id` TEXT, `source_treatment_id` TEXT, PRIMARY KEY(`id`), FOREIGN KEY(`assigned_ranger_id`) REFERENCES `ranger_profile`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`source_treatment_id`) REFERENCES `treatment_record`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "priority",
+            "columnName": "priority",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dueDate",
+            "columnName": "due_date",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "isComplete",
+            "columnName": "is_complete",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "completedAt",
+            "columnName": "completed_at",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "syncStatus",
+            "columnName": "sync_status",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "assignedRangerId",
+            "columnName": "assigned_ranger_id",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "sourceTreatmentId",
+            "columnName": "source_treatment_id",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_ranger_task_assigned_ranger_id",
+            "unique": false,
+            "columnNames": [
+              "assigned_ranger_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ranger_task_assigned_ranger_id` ON `${TABLE_NAME}` (`assigned_ranger_id`)"
+          },
+          {
+            "name": "index_ranger_task_source_treatment_id",
+            "unique": false,
+            "columnNames": [
+              "source_treatment_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ranger_task_source_treatment_id` ON `${TABLE_NAME}` (`source_treatment_id`)"
+          },
+          {
+            "name": "index_ranger_task_sync_status",
+            "unique": false,
+            "columnNames": [
+              "sync_status"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ranger_task_sync_status` ON `${TABLE_NAME}` (`sync_status`)"
+          },
+          {
+            "name": "index_ranger_task_due_date",
+            "unique": false,
+            "columnNames": [
+              "due_date"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ranger_task_due_date` ON `${TABLE_NAME}` (`due_date`)"
+          },
+          {
+            "name": "index_ranger_task_is_complete",
+            "unique": false,
+            "columnNames": [
+              "is_complete"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ranger_task_is_complete` ON `${TABLE_NAME}` (`is_complete`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "ranger_profile",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "assigned_ranger_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "treatment_record",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "source_treatment_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "infestation_zone",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `name` TEXT, `status` TEXT, `dominant_variant` TEXT, `sync_status` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "dominantVariant",
+            "columnName": "dominant_variant",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "syncStatus",
+            "columnName": "sync_status",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_infestation_zone_sync_status",
+            "unique": false,
+            "columnNames": [
+              "sync_status"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_infestation_zone_sync_status` ON `${TABLE_NAME}` (`sync_status`)"
+          },
+          {
+            "name": "index_infestation_zone_name",
+            "unique": false,
+            "columnNames": [
+              "name"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_infestation_zone_name` ON `${TABLE_NAME}` (`name`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "infestation_zone_snapshot",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `snapshot_date` INTEGER NOT NULL, `polygon_coordinates` TEXT NOT NULL, `area` REAL NOT NULL, `created_by_ranger_id` TEXT, `zone_id` TEXT, PRIMARY KEY(`id`), FOREIGN KEY(`zone_id`) REFERENCES `infestation_zone`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "snapshotDate",
+            "columnName": "snapshot_date",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "polygonCoordinates",
+            "columnName": "polygon_coordinates",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "area",
+            "columnName": "area",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdByRangerId",
+            "columnName": "created_by_ranger_id",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "zoneId",
+            "columnName": "zone_id",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_infestation_zone_snapshot_zone_id",
+            "unique": false,
+            "columnNames": [
+              "zone_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_infestation_zone_snapshot_zone_id` ON `${TABLE_NAME}` (`zone_id`)"
+          },
+          {
+            "name": "index_infestation_zone_snapshot_snapshot_date",
+            "unique": false,
+            "columnNames": [
+              "snapshot_date"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_infestation_zone_snapshot_snapshot_date` ON `${TABLE_NAME}` (`snapshot_date`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "infestation_zone",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "zone_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "patrol_record",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `patrol_date` INTEGER NOT NULL, `start_time` INTEGER NOT NULL, `end_time` INTEGER, `area_name` TEXT, `checklist_items` TEXT NOT NULL, `notes` TEXT, `sync_status` INTEGER NOT NULL, `ranger_id` TEXT, PRIMARY KEY(`id`), FOREIGN KEY(`ranger_id`) REFERENCES `ranger_profile`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "patrolDate",
+            "columnName": "patrol_date",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startTime",
+            "columnName": "start_time",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endTime",
+            "columnName": "end_time",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "areaName",
+            "columnName": "area_name",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "checklistItems",
+            "columnName": "checklist_items",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "syncStatus",
+            "columnName": "sync_status",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rangerId",
+            "columnName": "ranger_id",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_patrol_record_ranger_id",
+            "unique": false,
+            "columnNames": [
+              "ranger_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_patrol_record_ranger_id` ON `${TABLE_NAME}` (`ranger_id`)"
+          },
+          {
+            "name": "index_patrol_record_sync_status",
+            "unique": false,
+            "columnNames": [
+              "sync_status"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_patrol_record_sync_status` ON `${TABLE_NAME}` (`sync_status`)"
+          },
+          {
+            "name": "index_patrol_record_patrol_date",
+            "unique": false,
+            "columnNames": [
+              "patrol_date"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_patrol_record_patrol_date` ON `${TABLE_NAME}` (`patrol_date`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "ranger_profile",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "ranger_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "pesticide_stock",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `product_name` TEXT, `unit` TEXT, `current_quantity` REAL NOT NULL, `min_threshold` REAL NOT NULL, `sync_status` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "productName",
+            "columnName": "product_name",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "unit",
+            "columnName": "unit",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "currentQuantity",
+            "columnName": "current_quantity",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "minThreshold",
+            "columnName": "min_threshold",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "syncStatus",
+            "columnName": "sync_status",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_pesticide_stock_sync_status",
+            "unique": false,
+            "columnNames": [
+              "sync_status"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_pesticide_stock_sync_status` ON `${TABLE_NAME}` (`sync_status`)"
+          },
+          {
+            "name": "index_pesticide_stock_product_name",
+            "unique": false,
+            "columnNames": [
+              "product_name"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_pesticide_stock_product_name` ON `${TABLE_NAME}` (`product_name`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "pesticide_usage_record",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `used_quantity` REAL NOT NULL, `used_at` INTEGER, `notes` TEXT, `sync_status` INTEGER NOT NULL, `stock_id` TEXT, `treatment_id` TEXT, `ranger_id` TEXT, PRIMARY KEY(`id`), FOREIGN KEY(`stock_id`) REFERENCES `pesticide_stock`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`treatment_id`) REFERENCES `treatment_record`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`ranger_id`) REFERENCES `ranger_profile`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "usedQuantity",
+            "columnName": "used_quantity",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "usedAt",
+            "columnName": "used_at",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "syncStatus",
+            "columnName": "sync_status",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stockId",
+            "columnName": "stock_id",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "treatmentId",
+            "columnName": "treatment_id",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "rangerId",
+            "columnName": "ranger_id",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_pesticide_usage_record_stock_id",
+            "unique": false,
+            "columnNames": [
+              "stock_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_pesticide_usage_record_stock_id` ON `${TABLE_NAME}` (`stock_id`)"
+          },
+          {
+            "name": "index_pesticide_usage_record_treatment_id",
+            "unique": false,
+            "columnNames": [
+              "treatment_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_pesticide_usage_record_treatment_id` ON `${TABLE_NAME}` (`treatment_id`)"
+          },
+          {
+            "name": "index_pesticide_usage_record_ranger_id",
+            "unique": false,
+            "columnNames": [
+              "ranger_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_pesticide_usage_record_ranger_id` ON `${TABLE_NAME}` (`ranger_id`)"
+          },
+          {
+            "name": "index_pesticide_usage_record_sync_status",
+            "unique": false,
+            "columnNames": [
+              "sync_status"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_pesticide_usage_record_sync_status` ON `${TABLE_NAME}` (`sync_status`)"
+          },
+          {
+            "name": "index_pesticide_usage_record_used_at",
+            "unique": false,
+            "columnNames": [
+              "used_at"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_pesticide_usage_record_used_at` ON `${TABLE_NAME}` (`used_at`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "pesticide_stock",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "stock_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "treatment_record",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "treatment_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "ranger_profile",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "ranger_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "ranger_profile",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `supabase_uid` TEXT, `display_name` TEXT, `role` TEXT, `is_current_device` INTEGER NOT NULL, `avatar_filename` TEXT, `sync_status` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "supabaseUid",
+            "columnName": "supabase_uid",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "displayName",
+            "columnName": "display_name",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "role",
+            "columnName": "role",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "isCurrentDevice",
+            "columnName": "is_current_device",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "avatarFilename",
+            "columnName": "avatar_filename",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "syncStatus",
+            "columnName": "sync_status",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_ranger_profile_sync_status",
+            "unique": false,
+            "columnNames": [
+              "sync_status"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ranger_profile_sync_status` ON `${TABLE_NAME}` (`sync_status`)"
+          },
+          {
+            "name": "index_ranger_profile_supabase_uid",
+            "unique": false,
+            "columnNames": [
+              "supabase_uid"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ranger_profile_supabase_uid` ON `${TABLE_NAME}` (`supabase_uid`)"
+          },
+          {
+            "name": "index_ranger_profile_is_current_device",
+            "unique": false,
+            "columnNames": [
+              "is_current_device"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ranger_profile_is_current_device` ON `${TABLE_NAME}` (`is_current_device`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "sync_queue",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `entity_name` TEXT, `entity_id` TEXT NOT NULL, `operation_type` TEXT, `payload` TEXT, `attempt_count` INTEGER NOT NULL, `last_attempt_at` INTEGER, `last_error_message` TEXT, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "entityName",
+            "columnName": "entity_name",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "entityId",
+            "columnName": "entity_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "operationType",
+            "columnName": "operation_type",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "payload",
+            "columnName": "payload",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "attemptCount",
+            "columnName": "attempt_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastAttemptAt",
+            "columnName": "last_attempt_at",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lastErrorMessage",
+            "columnName": "last_error_message",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_sync_queue_entity_name",
+            "unique": false,
+            "columnNames": [
+              "entity_name"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_sync_queue_entity_name` ON `${TABLE_NAME}` (`entity_name`)"
+          },
+          {
+            "name": "index_sync_queue_entity_id",
+            "unique": false,
+            "columnNames": [
+              "entity_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_sync_queue_entity_id` ON `${TABLE_NAME}` (`entity_id`)"
+          },
+          {
+            "name": "index_sync_queue_created_at",
+            "unique": false,
+            "columnNames": [
+              "created_at"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_sync_queue_created_at` ON `${TABLE_NAME}` (`created_at`)"
+          }
+        ],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0dd49c0adaef1e4d6d30bf5848c68898')"
+    ]
+  }
+}

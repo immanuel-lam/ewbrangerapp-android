@@ -1,0 +1,18 @@
+# Gradle
+.gradle/
+build/
+**/build/
+local.properties
+
+# Android Studio
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Generated
+app/schemas/
+app/release/
+
+# OS
+.DS_Store
