@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -17,6 +18,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -31,7 +33,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import org.yac.llamarangers.data.repository.ZoneRepository
 import org.yac.llamarangers.domain.model.enums.LantanaVariant
@@ -40,6 +41,8 @@ import org.yac.llamarangers.ui.components.VariantColourDot
 /**
  * Form for adding a new infestation zone.
  * Ports iOS AddZoneView.
+ * OutlinedTextField for name, ExposedDropdownMenuBox for variant and status.
+ * Proper M3 spacing (16dp gaps between fields).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,7 +58,11 @@ fun AddZoneScreen(
     var statusExpanded by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    val statuses = listOf("active" to "Active", "underTreatment" to "Under Treatment", "cleared" to "Cleared")
+    val statuses = listOf(
+        "active" to "Active",
+        "underTreatment" to "Under Treatment",
+        "cleared" to "Cleared"
+    )
 
     Scaffold(
         topBar = {
@@ -89,7 +96,7 @@ fun AddZoneScreen(
         Column(
             modifier = Modifier
                 .padding(padding)
-                .padding(16.dp)
+                .padding(horizontal = 16.dp, vertical = 16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             Text(
@@ -99,15 +106,18 @@ fun AddZoneScreen(
                 modifier = Modifier.padding(bottom = 12.dp)
             )
 
+            // Zone name field
             OutlinedTextField(
                 value = zoneName,
                 onValueChange = { zoneName = it },
                 label = { Text("Zone Name (optional)") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
             )
 
+            Spacer(modifier = Modifier.height(16.dp))
+
             // Variant picker
-            Spacer(modifier = Modifier.padding(top = 16.dp))
             ExposedDropdownMenuBox(
                 expanded = variantExpanded,
                 onExpandedChange = { variantExpanded = it }
@@ -117,8 +127,12 @@ fun AddZoneScreen(
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Dominant Variant") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = variantExpanded) },
-                    modifier = Modifier.fillMaxWidth().menuAnchor()
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = variantExpanded)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable)
                 )
                 ExposedDropdownMenu(
                     expanded = variantExpanded,
@@ -142,8 +156,9 @@ fun AddZoneScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
             // Status picker
-            Spacer(modifier = Modifier.padding(top = 16.dp))
             ExposedDropdownMenuBox(
                 expanded = statusExpanded,
                 onExpandedChange = { statusExpanded = it }
@@ -153,8 +168,12 @@ fun AddZoneScreen(
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Status") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded) },
-                    modifier = Modifier.fillMaxWidth().menuAnchor()
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable)
                 )
                 ExposedDropdownMenu(
                     expanded = statusExpanded,
@@ -171,6 +190,8 @@ fun AddZoneScreen(
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }

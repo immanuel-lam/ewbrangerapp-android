@@ -1,6 +1,5 @@
 package org.yac.llamarangers.ui.map
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,14 +11,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -29,9 +30,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -58,6 +56,7 @@ import javax.inject.Inject
 /**
  * Zone detail showing info, boundary snapshots, and linked sightings.
  * Ports iOS ZoneDetailView.
+ * Info and snapshot sections use Card; snapshots are OutlinedCard items.
  */
 
 @HiltViewModel
@@ -81,7 +80,6 @@ class ZoneDetailViewModel @Inject constructor(
             _zone.value = allZones.firstOrNull { it.id == zoneId }
             _snapshots.value = zoneRepository.fetchSnapshotsForZone(zoneId)
                 .sortedByDescending { it.snapshotDate }
-            // Fetch sightings linked to this zone
             val allSightings = sightingRepository.fetchAllSightings()
             _linkedSightings.value = allSightings
                 .filter { it.infestationZoneId == zoneId }
@@ -122,50 +120,73 @@ fun ZoneDetailScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 16.dp)
         ) {
-            // Zone Info section
+            // Zone Info card
             item {
                 Text(
                     text = "Zone Info",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 4.dp)
                 )
-            }
-            item {
-                zone?.let { z ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        VariantColourDot(
-                            variant = LantanaVariant.fromValue(z.dominantVariant ?: ""),
-                            size = 14.dp
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(z.name ?: "Unnamed Zone", style = MaterialTheme.typography.titleMedium)
-                        Spacer(modifier = Modifier.weight(1f))
-                        StatusBadge(z.status)
-                    }
-                    z.dominantVariant?.let { dv ->
-                        Row(modifier = Modifier.padding(top = 4.dp)) {
-                            Text("Variant: ", style = MaterialTheme.typography.bodyMedium)
-                            Text(LantanaVariant.fromValue(dv).displayName, style = MaterialTheme.typography.bodyMedium)
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                    )
+                ) {
+                    zone?.let { z ->
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                VariantColourDot(
+                                    variant = LantanaVariant.fromValue(z.dominantVariant ?: ""),
+                                    size = 14.dp
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    z.name ?: "Unnamed Zone",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                ZoneStatusBadge(z.status)
+                            }
+                            z.dominantVariant?.let { dv ->
+                                Spacer(modifier = Modifier.height(8.dp))
+                                HorizontalDivider()
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Row {
+                                    Text("Variant: ", style = MaterialTheme.typography.bodyMedium)
+                                    Text(
+                                        LantanaVariant.fromValue(dv).displayName,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Row {
+                                Text("Created: ", style = MaterialTheme.typography.bodyMedium)
+                                Text(
+                                    dateFormat.format(Date(z.createdAt)),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
-                    }
-                    Row(modifier = Modifier.padding(top = 4.dp)) {
-                        Text("Created: ", style = MaterialTheme.typography.bodyMedium)
-                        Text(dateFormat.format(Date(z.createdAt)), style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }
 
             // Boundary Snapshots section
             item {
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                 Text(
                     text = "Boundary Snapshots (${snapshots.size})",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(top = 4.dp, bottom = 4.dp)
                 )
             }
             if (snapshots.isEmpty()) {
@@ -178,28 +199,29 @@ fun ZoneDetailScreen(
                 }
             } else {
                 items(snapshots, key = { it.id }) { snapshot ->
-                    Column(modifier = Modifier.padding(vertical = 4.dp)) {
-                        Text(
-                            text = dateTimeFormat.format(Date(snapshot.snapshotDate)),
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                        Text(
-                            text = "%.0f m\u00B2".format(snapshot.area),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                    OutlinedCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
+                            Text(
+                                text = dateTimeFormat.format(Date(snapshot.snapshotDate)),
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                            Text(
+                                text = "%.0f m\u00B2".format(snapshot.area),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }
 
             // Linked Sightings section
             item {
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                 Text(
                     text = "Linked Sightings (${linkedSightings.size})",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(top = 4.dp, bottom = 4.dp)
                 )
             }
             if (linkedSightings.isEmpty()) {
@@ -213,7 +235,9 @@ fun ZoneDetailScreen(
             } else {
                 items(linkedSightings, key = { it.id }) { sighting ->
                     Row(
-                        modifier = Modifier.padding(vertical = 4.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         VariantColourDot(
@@ -241,26 +265,33 @@ fun ZoneDetailScreen(
                 }
             }
 
-            item { Spacer(modifier = Modifier.height(32.dp)) }
+            item { Spacer(modifier = Modifier.height(24.dp)) }
         }
     }
 }
 
 @Composable
-private fun StatusBadge(status: String?) {
-    val (label, color) = when (status) {
-        "underTreatment" -> "Treating" to RangerOrange
-        "cleared" -> "Cleared" to RangerGreen
-        else -> "Active" to RangerRed
+private fun ZoneStatusBadge(status: String?) {
+    val (label, containerColor, labelColor) = when (status) {
+        "underTreatment" -> Triple("Treating", RangerOrange.copy(alpha = 0.15f), RangerOrange)
+        "cleared" -> Triple("Cleared", RangerGreen.copy(alpha = 0.15f), RangerGreen)
+        else -> Triple("Active", RangerRed.copy(alpha = 0.15f), RangerRed)
     }
-    Text(
-        text = label,
-        style = MaterialTheme.typography.labelSmall,
-        fontWeight = FontWeight.Bold,
-        color = color,
-        modifier = Modifier
-            .clip(RoundedCornerShape(6.dp))
-            .background(color.copy(alpha = 0.15f))
-            .padding(horizontal = 8.dp, vertical = 3.dp)
+    androidx.compose.material3.AssistChip(
+        onClick = {},
+        label = {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = labelColor
+            )
+        },
+        colors = androidx.compose.material3.AssistChipDefaults.assistChipColors(
+            containerColor = containerColor
+        ),
+        border = androidx.compose.material3.AssistChipDefaults.assistChipBorder(
+            enabled = true,
+            borderColor = labelColor.copy(alpha = 0.4f)
+        )
     )
 }

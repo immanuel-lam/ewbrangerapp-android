@@ -1,6 +1,5 @@
 package org.yac.llamarangers.ui.map
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,9 +13,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -34,10 +34,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import org.yac.llamarangers.data.local.entity.InfestationZoneEntity
 import org.yac.llamarangers.domain.model.enums.LantanaVariant
 import org.yac.llamarangers.ui.components.VariantColourDot
+import org.yac.llamarangers.ui.theme.RangerGreen
+import org.yac.llamarangers.ui.theme.RangerOrange
+import org.yac.llamarangers.ui.theme.RangerRed
 
 /**
  * List of infestation zones.
  * Ports iOS ZoneListView.
+ * Each zone shown as an ElevatedCard with name, status chip, and sighting count.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,52 +76,81 @@ fun ZoneListScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 12.dp)
         ) {
             items(zones, key = { it.id }) { zone ->
-                ZoneRow(
+                ZoneCard(
                     zone = zone,
                     onClick = { onNavigateToZoneDetail(zone.id) }
                 )
-                HorizontalDivider()
             }
         }
     }
 }
 
 @Composable
-private fun ZoneRow(
+private fun ZoneCard(
     zone: InfestationZoneEntity,
     onClick: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
+    ElevatedCard(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth()
     ) {
-        VariantColourDot(
-            variant = LantanaVariant.fromValue(zone.dominantVariant ?: ""),
-            size = 14.dp
-        )
-        Spacer(modifier = Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = zone.name ?: "Unnamed Zone",
-                style = MaterialTheme.typography.titleMedium
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            VariantColourDot(
+                variant = LantanaVariant.fromValue(zone.dominantVariant ?: ""),
+                size = 14.dp
             )
-            Text(
-                text = statusLabel(zone.status),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = zone.name ?: "Unnamed Zone",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = "0 sightings",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            ZoneStatusChip(status = zone.status)
         }
-        Icon(
-            imageVector = Icons.Default.ChevronRight,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
+}
+
+@Composable
+private fun ZoneStatusChip(status: String?) {
+    val (label, containerColor, labelColor) = when (status) {
+        "underTreatment" -> Triple("Treating", RangerOrange.copy(alpha = 0.15f), RangerOrange)
+        "cleared" -> Triple("Cleared", RangerGreen.copy(alpha = 0.15f), RangerGreen)
+        else -> Triple("Active", RangerRed.copy(alpha = 0.15f), RangerRed)
+    }
+    AssistChip(
+        onClick = {},
+        label = {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = labelColor
+            )
+        },
+        colors = AssistChipDefaults.assistChipColors(
+            containerColor = containerColor
+        ),
+        border = AssistChipDefaults.assistChipBorder(
+            enabled = true,
+            borderColor = labelColor.copy(alpha = 0.4f)
+        )
+    )
 }
 
 private fun statusLabel(status: String?): String = when (status) {
