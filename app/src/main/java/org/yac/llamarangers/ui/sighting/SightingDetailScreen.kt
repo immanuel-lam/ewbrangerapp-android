@@ -1,8 +1,8 @@
 package org.yac.llamarangers.ui.sighting
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,17 +13,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -37,7 +41,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -45,7 +48,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import org.yac.llamarangers.data.local.entity.InfestationZoneEntity
 import org.yac.llamarangers.data.local.entity.TreatmentRecordEntity
 import org.yac.llamarangers.domain.model.enums.LantanaVariant
-import org.yac.llamarangers.domain.model.enums.SyncStatus
 import org.yac.llamarangers.domain.model.enums.TreatmentMethod
 import org.yac.llamarangers.ui.components.SyncStatusBadge
 import org.yac.llamarangers.ui.components.VariantColourDot
@@ -55,7 +57,7 @@ import java.util.Locale
 
 /**
  * Detailed view of a single sighting with treatments and zone assignment.
- * Ports iOS SightingDetailView.
+ * Ports iOS SightingDetailView — M3 polish pass.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,7 +92,6 @@ fun SightingDetailScreen(
     ) { padding ->
         val s = sighting
         if (s == null) {
-            // Loading state
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -98,7 +99,7 @@ fun SightingDetailScreen(
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Loading...", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Loading…", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             return@Scaffold
         }
@@ -113,97 +114,147 @@ fun SightingDetailScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Variant header
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                VariantColourDot(variant = variant, size = 20.dp)
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = variant.displayName,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                SyncStatusBadge(status = syncStatus)
-            }
-
-            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-
-            // Location
-            Text("Location", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = String.format("%.6f, %.6f", s.latitude, s.longitude),
-                style = MaterialTheme.typography.bodyMedium,
-                fontFamily = FontFamily.Monospace
-            )
-            Text(
-                text = String.format("Accuracy \u00B1%.0fm", s.horizontalAccuracy),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-
-            // Size
-            Text("Size", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "${size.displayName} ${size.areaDescription}")
-
-            // Notes
-            val notes = s.notes
-            if (!notes.isNullOrBlank()) {
-                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-                Text("Notes", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = notes, style = MaterialTheme.typography.bodyMedium)
-            }
-
-            // Photos
-            val photos = viewModel.photoFilenames
-            if (photos.isNotEmpty()) {
-                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-                Text("Photos", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.horizontalScroll(rememberScrollState())
+            // ── Metadata card ─────────────────────────────────────────────────
+            ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    photos.forEach { filename ->
-                        PhotoThumbnail(
-                            filename = filename,
-                            modifier = Modifier.size(120.dp)
+                    // Variant name row
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        VariantColourDot(variant = variant, size = 20.dp)
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = variant.displayName,
+                            style = MaterialTheme.typography.headlineSmall
                         )
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.weight(1f))
+                        SyncStatusBadge(status = syncStatus)
                     }
-                }
-            }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-
-            // Zone assignment
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Zone", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.weight(1f))
-                TextButton(onClick = {
-                    viewModel.loadZones()
-                    showZonePicker = true
-                }) {
+                    // Date
+                    val dateFormat = remember { SimpleDateFormat("MMM d, yyyy", Locale.getDefault()) }
                     Text(
-                        text = assignedZone?.name ?: "Unassigned",
-                        color = if (assignedZone != null)
-                            MaterialTheme.colorScheme.onSurface
-                        else
-                            MaterialTheme.colorScheme.onSurfaceVariant
+                        text = dateFormat.format(Date(s.createdAt)),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    // Coordinates
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.LocationOn,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = String.format("%.6f, %.6f", s.latitude, s.longitude),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+                    Text(
+                        text = String.format("Accuracy \u00B1%.0fm", s.horizontalAccuracy),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    // Size chip
+                    AssistChip(
+                        onClick = {},
+                        label = { Text("${size.displayName} \u2014 ${size.areaDescription}") }
                     )
                 }
             }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+            // ── Notes ─────────────────────────────────────────────────────────
+            val notes = s.notes
+            if (!notes.isNullOrBlank()) {
+                Text(
+                    text = "Notes",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(text = notes, style = MaterialTheme.typography.bodyMedium)
+                HorizontalDivider()
+            }
 
-            // Treatments
-            Text("Treatments", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(8.dp))
+            // ── Photos ────────────────────────────────────────────────────────
+            val photos = viewModel.photoFilenames
+            if (photos.isNotEmpty()) {
+                Text(
+                    text = "Photos",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Row(
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    photos.forEach { filename ->
+                        PhotoThumbnail(
+                            filename = filename,
+                            modifier = Modifier.size(80.dp)
+                        )
+                    }
+                }
+                HorizontalDivider()
+            }
+
+            // ── Zone assignment ───────────────────────────────────────────────
+            Text(
+                text = "Zone",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            OutlinedCard(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = assignedZone?.name ?: "Unassigned",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (assignedZone != null)
+                            MaterialTheme.colorScheme.onSurface
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (assignedZone == null) {
+                        FilledTonalButton(onClick = {
+                            viewModel.loadZones()
+                            showZonePicker = true
+                        }) {
+                            Text("Assign to Zone")
+                        }
+                    } else {
+                        TextButton(onClick = {
+                            viewModel.loadZones()
+                            showZonePicker = true
+                        }) {
+                            Text("Change")
+                        }
+                    }
+                }
+            }
+
+            // ── Treatments ────────────────────────────────────────────────────
+            Text(
+                text = "Treatments",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
             if (treatments.isEmpty()) {
                 Text(
                     text = "No treatments recorded yet.",
@@ -212,10 +263,11 @@ fun SightingDetailScreen(
                 )
             } else {
                 treatments.forEach { treatment ->
-                    TreatmentRow(treatment = treatment)
-                    Spacer(modifier = Modifier.height(8.dp))
+                    TreatmentCard(treatment = treatment)
                 }
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 
@@ -312,38 +364,41 @@ private fun ZonePickerSheet(
 }
 
 @Composable
-private fun TreatmentRow(treatment: TreatmentRecordEntity) {
+private fun TreatmentCard(treatment: TreatmentRecordEntity) {
     val method = TreatmentMethod.fromValue(treatment.method)
     val dateFormat = remember { SimpleDateFormat("MMM d, yyyy", Locale.getDefault()) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(10.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = method.displayName,
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            Text(
-                text = dateFormat.format(Date(treatment.treatmentDate)),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        val notes = treatment.outcomeNotes
-        if (!notes.isNullOrBlank()) {
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = notes,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+    OutlinedCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = method.displayName,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = dateFormat.format(Date(treatment.treatmentDate)),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            val notes = treatment.outcomeNotes
+            if (!notes.isNullOrBlank()) {
+                Text(
+                    text = notes,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
