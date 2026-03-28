@@ -1,11 +1,8 @@
 package org.yac.llamarangers.ui.patrol
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -22,10 +19,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,6 +38,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -51,6 +51,8 @@ import java.util.Locale
 
 /**
  * Patrol history list view. Ports iOS PatrolListView.
+ * Each patrol shown as an ElevatedCard with area, date, duration,
+ * and a color-coded completion status chip.
  */
 @Composable
 fun PatrolListContent(patrols: List<PatrolRecordEntity>) {
@@ -59,53 +61,83 @@ fun PatrolListContent(patrols: List<PatrolRecordEntity>) {
             "No patrols yet.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(top = 8.dp)
         )
         return
     }
-    Column {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         patrols.forEach { patrol ->
-            PatrolListRow(patrol = patrol)
-            HorizontalDivider()
+            PatrolCard(patrol = patrol)
         }
     }
 }
 
 @Composable
-private fun PatrolListRow(patrol: PatrolRecordEntity) {
+private fun PatrolCard(patrol: PatrolRecordEntity) {
     val isComplete = patrol.endTime != null
     val dateFormat = remember { SimpleDateFormat("MMM d, yyyy", Locale.getDefault()) }
+    val timeFormat = remember { SimpleDateFormat("h:mm a", Locale.getDefault()) }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 4.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = if (isComplete) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
-            contentDescription = if (isComplete) "Complete" else "Active",
-            tint = if (isComplete) Color(0xFF4CAF50) else Color(0xFFFFA726),
-            modifier = Modifier.size(28.dp)
-        )
-        Spacer(modifier = Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = patrol.areaName ?: "Unknown Area",
-                style = MaterialTheme.typography.titleSmall
-            )
-            Text(
-                text = dateFormat.format(Date(patrol.patrolDate)),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        Text(
-            text = if (isComplete) "Done" else "Active",
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-            color = if (isComplete) Color(0xFF4CAF50) else Color(0xFFFFA726)
-        )
+    val durationText: String = if (isComplete && patrol.endTime != null) {
+        val diffMinutes = ((patrol.endTime - patrol.patrolDate) / 60_000).toInt()
+        if (diffMinutes >= 60) "${diffMinutes / 60}h ${diffMinutes % 60}m"
+        else "${diffMinutes}m"
+    } else {
+        "In progress"
     }
+
+    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = patrol.areaName ?: "Unknown Area",
+                    style = MaterialTheme.typography.titleSmall
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = dateFormat.format(Date(patrol.patrolDate)),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = durationText,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            PatrolStatusChip(isComplete = isComplete)
+        }
+    }
+}
+
+@Composable
+private fun PatrolStatusChip(isComplete: Boolean) {
+    val doneGreen = Color(0xFF4CAF50)
+    val activeAmber = Color(0xFFFFA726)
+    val (label, chipColor) = if (isComplete) "Done" to doneGreen else "Active" to activeAmber
+    AssistChip(
+        onClick = {},
+        label = {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = chipColor
+            )
+        },
+        colors = AssistChipDefaults.assistChipColors(
+            containerColor = chipColor.copy(alpha = 0.12f)
+        ),
+        border = AssistChipDefaults.assistChipBorder(
+            enabled = true,
+            borderColor = chipColor.copy(alpha = 0.4f)
+        )
+    )
 }
 
 /**
@@ -172,7 +204,7 @@ fun PatrolCalendarContent(patrols: List<PatrolRecordEntity>) {
         val cal = Calendar.getInstance().apply { time = displayMonth }
         val daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
         cal.set(Calendar.DAY_OF_MONTH, 1)
-        val firstDayOfWeek = cal.get(Calendar.DAY_OF_WEEK) - 1 // 0=Sunday
+        val firstDayOfWeek = cal.get(Calendar.DAY_OF_WEEK) - 1
 
         val today = Calendar.getInstance()
 
@@ -181,7 +213,6 @@ fun PatrolCalendarContent(patrols: List<PatrolRecordEntity>) {
             modifier = Modifier.height(((daysInMonth + firstDayOfWeek + 6) / 7 * 48).dp),
             userScrollEnabled = false
         ) {
-            // Empty cells for leading days
             items(firstDayOfWeek) {
                 Box(modifier = Modifier.height(44.dp))
             }
@@ -245,7 +276,8 @@ fun PatrolCalendarContent(patrols: List<PatrolRecordEntity>) {
                                         .size(5.dp)
                                         .clip(CircleShape)
                                         .background(
-                                            if (p.endTime != null) Color(0xFF4CAF50) else Color(0xFFFFA726)
+                                            if (p.endTime != null) Color(0xFF4CAF50)
+                                            else Color(0xFFFFA726)
                                         )
                                 )
                             }
@@ -261,13 +293,15 @@ fun PatrolCalendarContent(patrols: List<PatrolRecordEntity>) {
         val monthCal = Calendar.getInstance().apply { time = displayMonth }
         val monthStart = monthCal.apply {
             set(Calendar.DAY_OF_MONTH, 1)
-            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
         }.timeInMillis
         val nextMonth = Calendar.getInstance().apply {
             time = displayMonth
             add(Calendar.MONTH, 1)
             set(Calendar.DAY_OF_MONTH, 1)
-            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
         }.timeInMillis
 
         val monthPatrols = patrols.filter { it.patrolDate in monthStart until nextMonth }
@@ -292,7 +326,10 @@ fun PatrolCalendarContent(patrols: List<PatrolRecordEntity>) {
                         modifier = Modifier
                             .size(8.dp)
                             .clip(CircleShape)
-                            .background(if (patrol.endTime != null) Color(0xFF4CAF50) else Color(0xFFFFA726))
+                            .background(
+                                if (patrol.endTime != null) Color(0xFF4CAF50)
+                                else Color(0xFFFFA726)
+                            )
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(patrol.areaName ?: "Unknown", style = MaterialTheme.typography.bodySmall)

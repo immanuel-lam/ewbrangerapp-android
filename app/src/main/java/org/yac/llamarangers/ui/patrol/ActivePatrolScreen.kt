@@ -1,34 +1,27 @@
 package org.yac.llamarangers.ui.patrol
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckBox
-import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import org.yac.llamarangers.domain.model.PatrolChecklistItem
-import org.yac.llamarangers.ui.components.LargeButton
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -36,6 +29,8 @@ import java.util.Locale
 /**
  * Active patrol view with checklist and progress.
  * Ports iOS ActivePatrolView.
+ * LinearProgressIndicator for checklist progress; checklist items as ListItem
+ * with Checkbox leadingContent; "Finish Patrol" FilledButton with errorContainer colors.
  */
 @Composable
 fun ActivePatrolScreen(
@@ -46,29 +41,28 @@ fun ActivePatrolScreen(
     val completionPct = viewModel.completionPercentage
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Header
+        // Header with progress
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = activePatrol?.areaName ?: "Active Patrol",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.headlineSmall
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            LinearProgressIndicator(
-                progress = { completionPct },
-                modifier = Modifier.fillMaxWidth(),
-                color = Color(0xFF4CAF50)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "${(completionPct * 100).toInt()}% complete",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
+            )
+            LinearProgressIndicator(
+                progress = { completionPct },
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
         }
 
@@ -79,46 +73,41 @@ fun ActivePatrolScreen(
                 .fillMaxWidth()
         ) {
             items(checklistItems, key = { it.id }) { item ->
-                ChecklistItemRow(
+                ChecklistListItem(
                     item = item,
                     onToggle = { viewModel.toggleItem(item) }
                 )
             }
         }
 
-        // Finish button
-        LargeButton(
-            title = "Finish Patrol",
+        // Finish Patrol button — FilledButton with errorContainer colors
+        Button(
             onClick = { viewModel.finishPatrol() },
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(16.dp)
-        )
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer
+            )
+        ) {
+            Text(
+                text = "Finish Patrol",
+                style = MaterialTheme.typography.labelLarge
+            )
+        }
     }
 }
 
 @Composable
-private fun ChecklistItemRow(
+private fun ChecklistListItem(
     item: PatrolChecklistItem,
     onToggle: () -> Unit
 ) {
     val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onToggle)
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = if (item.isComplete) Icons.Default.CheckBox
-            else Icons.Default.CheckBoxOutlineBlank,
-            contentDescription = if (item.isComplete) "Complete" else "Incomplete",
-            tint = if (item.isComplete) Color(0xFF4CAF50)
-            else MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.width(14.dp))
-        Column {
+    ListItem(
+        headlineContent = {
             Text(
                 text = item.label,
                 style = MaterialTheme.typography.bodyLarge,
@@ -126,13 +115,24 @@ private fun ChecklistItemRow(
                 color = if (item.isComplete) MaterialTheme.colorScheme.onSurfaceVariant
                 else MaterialTheme.colorScheme.onSurface
             )
-            item.completedAt?.let { millis ->
+        },
+        supportingContent = item.completedAt?.let { millis ->
+            {
                 Text(
                     text = timeFormat.format(Date(millis)),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-        }
-    }
+        },
+        leadingContent = {
+            Checkbox(
+                checked = item.isComplete,
+                onCheckedChange = { onToggle() }
+            )
+        },
+        colors = ListItemDefaults.colors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    )
 }
