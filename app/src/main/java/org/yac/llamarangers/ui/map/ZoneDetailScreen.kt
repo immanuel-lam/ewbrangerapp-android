@@ -80,15 +80,20 @@ class ZoneDetailViewModel @Inject constructor(
 
     fun loadZone(zoneId: String) {
         viewModelScope.launch {
-            val allZones = zoneRepository.fetchAllZones()
-            _zone.value = allZones.firstOrNull { it.id == zoneId }
-            _snapshots.value = zoneRepository.fetchSnapshotsForZone(zoneId)
-                .sortedByDescending { it.snapshotDate }
-            val allSightings = sightingRepository.fetchAllSightings()
-            _linkedSightings.value = allSightings
-                .filter { it.infestationZoneId == zoneId }
-                .sortedByDescending { it.createdAt }
-            _isLoading.value = false
+            try {
+                val allZones = zoneRepository.fetchAllZones()
+                _zone.value = allZones.firstOrNull { it.id == zoneId }
+                _snapshots.value = zoneRepository.fetchSnapshotsForZone(zoneId)
+                    .sortedByDescending { it.snapshotDate }
+                val allSightings = sightingRepository.fetchAllSightings()
+                _linkedSightings.value = allSightings
+                    .filter { it.infestationZoneId == zoneId }
+                    .sortedByDescending { it.createdAt }
+            } catch (_: Exception) {
+                _zone.value = null
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 }

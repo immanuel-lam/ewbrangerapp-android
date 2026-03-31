@@ -70,7 +70,11 @@ class AddTaskViewModel @Inject constructor(
         onComplete: () -> Unit,
         onError: () -> Unit = {}
     ) {
-        val rangerId = authManager.currentRangerId.value?.toString() ?: return
+        val rangerId = authManager.currentRangerId.value?.toString()
+        if (rangerId == null) {
+            onError()
+            return
+        }
         viewModelScope.launch {
             try {
                 taskRepository.createTask(

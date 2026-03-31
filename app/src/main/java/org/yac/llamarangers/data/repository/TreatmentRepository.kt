@@ -1,8 +1,10 @@
 package org.yac.llamarangers.data.repository
 
+import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
 import org.yac.llamarangers.data.local.dao.TreatmentRecordDao
 import org.yac.llamarangers.data.local.dao.SyncQueueDao
+import org.yac.llamarangers.data.local.db.AppDatabase
 import org.yac.llamarangers.data.local.entity.TreatmentRecordEntity
 import org.yac.llamarangers.data.local.entity.SyncQueueEntity
 import org.yac.llamarangers.domain.model.enums.SyncStatus
@@ -12,6 +14,7 @@ import javax.inject.Singleton
 
 @Singleton
 class TreatmentRepository @Inject constructor(
+    private val db: AppDatabase,
     private val treatmentDao: TreatmentRecordDao,
     private val syncQueueDao: SyncQueueDao
 ) {
@@ -49,21 +52,23 @@ class TreatmentRepository @Inject constructor(
             followUpTaskId = null
         )
 
-        treatmentDao.upsert(entity)
+        db.withTransaction {
+            treatmentDao.upsert(entity)
 
-        syncQueueDao.upsert(
-            SyncQueueEntity(
-                id = UUID.randomUUID().toString(),
-                createdAt = now,
-                entityName = "TreatmentRecord",
-                entityId = id,
-                operationType = "create",
-                payload = null,
-                attemptCount = 0,
-                lastAttemptAt = null,
-                lastErrorMessage = null
+            syncQueueDao.upsert(
+                SyncQueueEntity(
+                    id = UUID.randomUUID().toString(),
+                    createdAt = now,
+                    entityName = "TreatmentRecord",
+                    entityId = id,
+                    operationType = "create",
+                    payload = null,
+                    attemptCount = 0,
+                    lastAttemptAt = null,
+                    lastErrorMessage = null
+                )
             )
-        )
+        }
 
         return entity
     }

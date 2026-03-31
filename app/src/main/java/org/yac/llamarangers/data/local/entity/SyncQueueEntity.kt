@@ -19,11 +19,11 @@ data class SyncQueueEntity(
     @ColumnInfo(name = "created_at")
     val createdAt: Long,
     @ColumnInfo(name = "entity_name")
-    val entityName: String?,
+    val entityName: String,
     @ColumnInfo(name = "entity_id")
     val entityId: String,
     @ColumnInfo(name = "operation_type")
-    val operationType: String?,
+    val operationType: String,
     val payload: String?, // JSON string
     @ColumnInfo(name = "attempt_count")
     val attemptCount: Int,

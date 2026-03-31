@@ -46,12 +46,16 @@ class PatrolViewModel @Inject constructor(
 
     fun load() {
         viewModelScope.launch {
-            _patrols.value = patrolRepository.fetchAllPatrols()
-            val rangerId = authManager.currentRangerId.value?.toString() ?: return@launch
-            val active = patrolRepository.fetchActivePatrol(rangerId)
-            _activePatrol.value = active
-            if (active != null) {
-                _activeChecklistItems.value = loadChecklist(active)
+            try {
+                _patrols.value = patrolRepository.fetchAllPatrols()
+                val rangerId = authManager.currentRangerId.value?.toString() ?: return@launch
+                val active = patrolRepository.fetchActivePatrol(rangerId)
+                _activePatrol.value = active
+                if (active != null) {
+                    _activeChecklistItems.value = loadChecklist(active)
+                }
+            } catch (_: Exception) {
+                // Keep last-known state
             }
         }
     }
@@ -64,14 +68,18 @@ class PatrolViewModel @Inject constructor(
             val checklist = PortStewartZones.defaultChecklist(area)
             val checklistJson = gson.toJson(checklist)
 
-            val patrol = patrolRepository.createPatrol(
-                areaName = area,
-                rangerId = rangerId,
-                checklistItemsJson = checklistJson
-            )
-            _activePatrol.value = patrol
-            _activeChecklistItems.value = checklist
-            load()
+            try {
+                val patrol = patrolRepository.createPatrol(
+                    areaName = area,
+                    rangerId = rangerId,
+                    checklistItemsJson = checklistJson
+                )
+                _activePatrol.value = patrol
+                _activeChecklistItems.value = checklist
+                load()
+            } catch (_: Exception) {
+                // Patrol creation failed; UI stays on start screen
+            }
         }
     }
 
@@ -88,17 +96,26 @@ class PatrolViewModel @Inject constructor(
                 )
             }
             _activeChecklistItems.value = items
-            patrolRepository.updateChecklist(patrol.id, gson.toJson(items))
+            try {
+                patrolRepository.updateChecklist(patrol.id, gson.toJson(items))
+            } catch (_: Exception) {
+                // Revert optimistic update on failure
+                _activeChecklistItems.value = loadChecklist(patrol)
+            }
         }
     }
 
     fun finishPatrol() {
         viewModelScope.launch {
             val patrol = _activePatrol.value ?: return@launch
-            patrolRepository.finishPatrol(patrol.id)
-            _activePatrol.value = null
-            _activeChecklistItems.value = emptyList()
-            load()
+            try {
+                patrolRepository.finishPatrol(patrol.id)
+                _activePatrol.value = null
+                _activeChecklistItems.value = emptyList()
+                load()
+            } catch (_: Exception) {
+                // Finish failed; patrol stays active
+            }
         }
     }
 

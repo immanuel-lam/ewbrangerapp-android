@@ -73,28 +73,37 @@ class TreatmentEntryViewModel @Inject constructor(
         outcomeNotes: String,
         hasFollowUp: Boolean,
         followUpDate: Long,
-        onComplete: () -> Unit
+        onComplete: () -> Unit,
+        onError: () -> Unit = {}
     ) {
-        val rangerId = authManager.currentRangerId.value?.toString() ?: return
+        val rangerId = authManager.currentRangerId.value?.toString()
+        if (rangerId == null) {
+            onError()
+            return
+        }
         viewModelScope.launch {
-            val treatment = treatmentRepository.addTreatment(
-                sightingId = sightingId,
-                method = method.value,
-                herbicideProduct = herbicideProduct.ifBlank { null },
-                outcomeNotes = outcomeNotes.ifBlank { null },
-                followUpDate = if (hasFollowUp) followUpDate else null,
-                rangerId = rangerId
-            )
-            // Auto-create follow-up task if needed
-            if (hasFollowUp) {
-                taskRepository.createFollowUpTask(
-                    treatmentId = treatment.id,
-                    treatmentMethod = method.displayName,
-                    followUpDate = followUpDate,
+            try {
+                val treatment = treatmentRepository.addTreatment(
+                    sightingId = sightingId,
+                    method = method.value,
+                    herbicideProduct = herbicideProduct.ifBlank { null },
+                    outcomeNotes = outcomeNotes.ifBlank { null },
+                    followUpDate = if (hasFollowUp) followUpDate else null,
                     rangerId = rangerId
                 )
+                // Auto-create follow-up task if needed
+                if (hasFollowUp) {
+                    taskRepository.createFollowUpTask(
+                        treatmentId = treatment.id,
+                        treatmentMethod = method.displayName,
+                        followUpDate = followUpDate,
+                        rangerId = rangerId
+                    )
+                }
+                onComplete()
+            } catch (_: Exception) {
+                onError()
             }
-            onComplete()
         }
     }
 }
@@ -141,7 +150,8 @@ fun TreatmentEntryScreen(
                                 outcomeNotes = outcomeNotes,
                                 hasFollowUp = hasFollowUp,
                                 followUpDate = followUpDate,
-                                onComplete = onNavigateBack
+                                onComplete = onNavigateBack,
+                                onError = { isSaving = false }
                             )
                         },
                         enabled = !isSaving

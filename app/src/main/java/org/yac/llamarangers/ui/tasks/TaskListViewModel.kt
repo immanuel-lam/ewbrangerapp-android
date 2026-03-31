@@ -40,8 +40,12 @@ class TaskListViewModel @Inject constructor(
 
     fun load() {
         viewModelScope.launch {
-            val rangerId = authManager.currentRangerId.value?.toString()
-            _tasks.value = taskRepository.fetchAllTasks(rangerId)
+            try {
+                val rangerId = authManager.currentRangerId.value?.toString()
+                _tasks.value = taskRepository.fetchAllTasks(rangerId)
+            } catch (_: Exception) {
+                // Keep last-known state
+            }
         }
     }
 
@@ -76,14 +80,18 @@ class TaskListViewModel @Inject constructor(
 
     fun toggle(task: RangerTaskEntity) {
         viewModelScope.launch {
-            taskRepository.toggleComplete(task.id)
+            try {
+                taskRepository.toggleComplete(task.id)
+            } catch (_: Exception) { /* best-effort */ }
             load()
         }
     }
 
     fun delete(task: RangerTaskEntity) {
         viewModelScope.launch {
-            taskRepository.deleteTask(task.id)
+            try {
+                taskRepository.deleteTask(task.id)
+            } catch (_: Exception) { /* best-effort */ }
             load()
         }
     }

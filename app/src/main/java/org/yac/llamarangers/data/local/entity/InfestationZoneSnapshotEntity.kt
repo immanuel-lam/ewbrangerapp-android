@@ -32,5 +32,5 @@ data class InfestationZoneSnapshotEntity(
     @ColumnInfo(name = "created_by_ranger_id")
     val createdByRangerId: String?,
     @ColumnInfo(name = "zone_id")
-    val zoneId: String?
+    val zoneId: String
 )

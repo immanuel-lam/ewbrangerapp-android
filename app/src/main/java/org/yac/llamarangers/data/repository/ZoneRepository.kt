@@ -1,10 +1,12 @@
 package org.yac.llamarangers.data.repository
 
+import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
 import org.yac.llamarangers.data.local.dao.InfestationZoneDao
 import org.yac.llamarangers.data.local.dao.InfestationZoneSnapshotDao
 import org.yac.llamarangers.data.local.dao.SightingLogDao
 import org.yac.llamarangers.data.local.dao.SyncQueueDao
+import org.yac.llamarangers.data.local.db.AppDatabase
 import org.yac.llamarangers.data.local.entity.InfestationZoneEntity
 import org.yac.llamarangers.data.local.entity.InfestationZoneSnapshotEntity
 import org.yac.llamarangers.data.local.entity.SightingLogEntity
@@ -17,6 +19,7 @@ import javax.inject.Singleton
 
 @Singleton
 class ZoneRepository @Inject constructor(
+    private val db: AppDatabase,
     private val zoneDao: InfestationZoneDao,
     private val snapshotDao: InfestationZoneSnapshotDao,
     private val sightingDao: SightingLogDao,
@@ -31,7 +34,8 @@ class ZoneRepository @Inject constructor(
 
     suspend fun createZone(
         name: String?,
-        dominantVariant: LantanaVariant
+        dominantVariant: LantanaVariant,
+        status: String = "active"
     ): InfestationZoneEntity {
         val now = System.currentTimeMillis()
         val id = UUID.randomUUID().toString()
@@ -41,7 +45,7 @@ class ZoneRepository @Inject constructor(
             createdAt = now,
             updatedAt = now,
             name = name,
-            status = "active",
+            status = status,
             dominantVariant = dominantVariant.value,
             syncStatus = SyncStatus.PENDING_CREATE.value
         )
