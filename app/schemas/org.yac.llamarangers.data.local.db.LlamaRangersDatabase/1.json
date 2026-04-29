@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "0dd49c0adaef1e4d6d30bf5848c68898",
+    "identityHash": "fbf65df967f793defc59819f68361c68",
     "entities": [
       {
         "tableName": "sighting_log",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `horizontal_accuracy` REAL NOT NULL, `variant` TEXT NOT NULL, `infestation_size` TEXT NOT NULL, `notes` TEXT, `photo_filenames` TEXT NOT NULL, `device_id` TEXT, `server_id` TEXT, `sync_status` INTEGER NOT NULL, `ranger_id` TEXT, `infestation_zone_id` TEXT, PRIMARY KEY(`id`), FOREIGN KEY(`ranger_id`) REFERENCES `ranger_profile`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`infestation_zone_id`) REFERENCES `infestation_zone`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `horizontal_accuracy` REAL NOT NULL, `variant` TEXT NOT NULL, `infestation_size` TEXT NOT NULL, `infestation_area_estimate` TEXT, `notes` TEXT, `photo_filenames` TEXT NOT NULL, `device_id` TEXT, `server_id` TEXT, `voice_note_path` TEXT, `sync_status` INTEGER NOT NULL, `ranger_id` TEXT, `infestation_zone_id` TEXT, PRIMARY KEY(`id`), FOREIGN KEY(`ranger_id`) REFERENCES `ranger_profile`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`infestation_zone_id`) REFERENCES `infestation_zone`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
         "fields": [
           {
             "fieldPath": "id",
@@ -57,6 +57,12 @@
             "notNull": true
           },
           {
+            "fieldPath": "infestationAreaEstimate",
+            "columnName": "infestation_area_estimate",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
             "fieldPath": "notes",
             "columnName": "notes",
             "affinity": "TEXT",
@@ -77,6 +83,12 @@
           {
             "fieldPath": "serverId",
             "columnName": "server_id",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "voiceNotePath",
+            "columnName": "voice_note_path",
             "affinity": "TEXT",
             "notNull": false
           },
@@ -1202,7 +1214,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0dd49c0adaef1e4d6d30bf5848c68898')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'fbf65df967f793defc59819f68361c68')"
     ]
   }
 }

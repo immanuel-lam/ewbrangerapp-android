@@ -106,12 +106,12 @@ class DemoSeeder @Inject constructor(
         )
 
         val zoneSpecs = listOf(
-            ZoneSpec("North Creek Gully", "active", "pink", -14.685, 143.712),
-            ZoneSpec("Boundary Road East", "underTreatment", "red", -14.718, 143.698),
-            ZoneSpec("Homestead Track", "cleared", "pinkEdgedRed", -14.703, 143.722),
-            ZoneSpec("Rocky Point Scrub", "active", "orange", -14.695, 143.683),
-            ZoneSpec("Mangrove Flat", "underTreatment", "white", -14.725, 143.715),
-            ZoneSpec("Station Dam", "cleared", "pink", -14.710, 143.730),
+            ZoneSpec("North Creek Gully", "active", "lantana", -14.685, 143.712),
+            ZoneSpec("Boundary Road East", "underTreatment", "rubberVine", -14.718, 143.698),
+            ZoneSpec("Homestead Track", "cleared", "pricklyAcacia", -14.703, 143.722),
+            ZoneSpec("Rocky Point Scrub", "active", "giantRatsTailGrass", -14.695, 143.683),
+            ZoneSpec("Mangrove Flat", "underTreatment", "pondApple", -14.725, 143.715),
+            ZoneSpec("Station Dam", "cleared", "sicklepod", -14.710, 143.730),
         )
 
         val zoneIds = mutableListOf<String>()
@@ -164,40 +164,40 @@ class DemoSeeder @Inject constructor(
         )
 
         val sightingSpecs = listOf(
-            // Zone 0 -- North Creek Gully   centroid (-14.685, 143.712)
-            SightingSpec(alice, "pink", "large", -14.685, 143.712, 168, 0),
-            SightingSpec(carol, "pink", "large", -14.684, 143.713, 134, 0),
-            SightingSpec(bob, "pink", "large", -14.686, 143.713, 99, 0),
-            SightingSpec(alice, "pink", "small", -14.684, 143.711, 64, 0),
-            SightingSpec(alice, "orange", "medium", -14.686, 143.711, 22, 0),
-            SightingSpec(alice, "red", "medium", -14.685, 143.7135, 2, 0),
-            // Zone 1 -- Boundary Road East  centroid (-14.718, 143.698)
-            SightingSpec(bob, "red", "medium", -14.718, 143.698, 162, 1),
-            SightingSpec(alice, "red", "large", -14.717, 143.699, 127, 1),
-            SightingSpec(carol, "red", "medium", -14.719, 143.699, 92, 1),
-            SightingSpec(carol, "red", "large", -14.717, 143.697, 50, 1),
-            SightingSpec(carol, "red", "medium", -14.719, 143.697, 14, 1),
-            // Zone 2 -- Homestead Track     centroid (-14.703, 143.722)
-            SightingSpec(carol, "pinkEdgedRed", "small", -14.703, 143.722, 155, 2),
-            SightingSpec(alice, "pinkEdgedRed", "medium", -14.702, 143.7225, 106, 2),
-            SightingSpec(bob, "pinkEdgedRed", "medium", -14.704, 143.7225, 57, 2),
-            SightingSpec(bob, "pink", "small", -14.703, 143.721, 18, 2),
-            // Zone 3 -- Rocky Point Scrub   centroid (-14.695, 143.683)
-            SightingSpec(alice, "pink", "medium", -14.695, 143.683, 148, 3),
-            SightingSpec(bob, "orange", "medium", -14.694, 143.684, 120, 3),
-            SightingSpec(bob, "pink", "medium", -14.696, 143.6825, 78, 3),
-            SightingSpec(alice, "pink", "medium", -14.6945, 143.682, 43, 3),
-            SightingSpec(alice, "pink", "large", -14.6955, 143.684, 10, 3),
-            // Zone 4 -- Mangrove Flat       centroid (-14.725, 143.715)
-            SightingSpec(bob, "white", "small", -14.725, 143.715, 141, 4),
-            SightingSpec(alice, "white", "small", -14.724, 143.7155, 85, 4),
-            SightingSpec(bob, "white", "small", -14.726, 143.7145, 36, 4),
-            SightingSpec(bob, "pinkEdgedRed", "medium", -14.7245, 143.714, 7, 4),
-            // Zone 5 -- Station Dam         centroid (-14.710, 143.730)
-            SightingSpec(carol, "pink", "small", -14.710, 143.730, 113, 5),
-            SightingSpec(carol, "orange", "large", -14.709, 143.731, 71, 5),
-            SightingSpec(carol, "pink", "large", -14.711, 143.729, 29, 5),
-            SightingSpec(carol, "pink", "small", -14.709, 143.729, 4, 5),
+            // Zone 0 -- North Creek Gully (lantana)  centroid (-14.685, 143.712)
+            SightingSpec(alice, "lantana", "large", -14.685, 143.712, 168, 0),
+            SightingSpec(carol, "lantana", "large", -14.684, 143.713, 134, 0),
+            SightingSpec(bob, "lantana", "large", -14.686, 143.713, 99, 0),
+            SightingSpec(alice, "lantana", "small", -14.684, 143.711, 64, 0),
+            SightingSpec(alice, "lantana", "medium", -14.686, 143.711, 22, 0),
+            SightingSpec(alice, "lantana", "medium", -14.685, 143.7135, 2, 0),
+            // Zone 1 -- Boundary Road East (rubberVine)  centroid (-14.718, 143.698)
+            SightingSpec(bob, "rubberVine", "medium", -14.718, 143.698, 162, 1),
+            SightingSpec(alice, "rubberVine", "large", -14.717, 143.699, 127, 1),
+            SightingSpec(carol, "rubberVine", "medium", -14.719, 143.699, 92, 1),
+            SightingSpec(carol, "rubberVine", "large", -14.717, 143.697, 50, 1),
+            SightingSpec(carol, "rubberVine", "medium", -14.719, 143.697, 14, 1),
+            // Zone 2 -- Homestead Track (pricklyAcacia)    centroid (-14.703, 143.722)
+            SightingSpec(carol, "pricklyAcacia", "small", -14.703, 143.722, 155, 2),
+            SightingSpec(alice, "pricklyAcacia", "medium", -14.702, 143.7225, 106, 2),
+            SightingSpec(bob, "pricklyAcacia", "medium", -14.704, 143.7225, 57, 2),
+            SightingSpec(bob, "pricklyAcacia", "small", -14.703, 143.721, 18, 2),
+            // Zone 3 -- Rocky Point Scrub (giantRatsTailGrass)  centroid (-14.695, 143.683)
+            SightingSpec(alice, "giantRatsTailGrass", "medium", -14.695, 143.683, 148, 3),
+            SightingSpec(bob, "giantRatsTailGrass", "medium", -14.694, 143.684, 120, 3),
+            SightingSpec(bob, "giantRatsTailGrass", "medium", -14.696, 143.6825, 78, 3),
+            SightingSpec(alice, "giantRatsTailGrass", "medium", -14.6945, 143.682, 43, 3),
+            SightingSpec(alice, "giantRatsTailGrass", "large", -14.6955, 143.684, 10, 3),
+            // Zone 4 -- Mangrove Flat (pondApple)      centroid (-14.725, 143.715)
+            SightingSpec(bob, "pondApple", "small", -14.725, 143.715, 141, 4),
+            SightingSpec(alice, "pondApple", "small", -14.724, 143.7155, 85, 4),
+            SightingSpec(bob, "pondApple", "small", -14.726, 143.7145, 36, 4),
+            SightingSpec(bob, "pondApple", "medium", -14.7245, 143.714, 7, 4),
+            // Zone 5 -- Station Dam (sicklepod)        centroid (-14.710, 143.730)
+            SightingSpec(carol, "sicklepod", "small", -14.710, 143.730, 113, 5),
+            SightingSpec(carol, "sicklepod", "large", -14.709, 143.731, 71, 5),
+            SightingSpec(carol, "sicklepod", "large", -14.711, 143.729, 29, 5),
+            SightingSpec(carol, "sicklepod", "small", -14.709, 143.729, 4, 5),
         )
 
         data class SightingRef(val id: String, val rangerId: String, val createdAt: Long)
@@ -216,10 +216,12 @@ class DemoSeeder @Inject constructor(
                     horizontalAccuracy = 8.0,
                     variant = spec.variant,
                     infestationSize = spec.size,
+                    infestationAreaEstimate = null,
                     notes = null,
                     photoFilenames = variantPhotos[spec.variant] ?: emptyList(),
                     deviceId = "demo-device",
                     serverId = null,
+                    voiceNotePath = null,
                     syncStatus = synced,
                     rangerId = spec.ranger.id,
                     infestationZoneId = spec.zoneIdx?.let { zoneIds[it] },
@@ -231,8 +233,8 @@ class DemoSeeder @Inject constructor(
         // --------------------------------------------------------
         // TREATMENT RECORDS  (first 18 sightings)
         // --------------------------------------------------------
-        val methods = listOf("cutStump", "splatGun", "foliarSpray", "basalBark")
-        val products = listOf("Garlon 600", "Access", "Glyphosate 360")
+        val methods = listOf("cutStump", "splatGun", "foliarSpray", "basalBark", "mechanical", "stemInjection")
+        val products = listOf("Garlon 600", "Access", "Glyphosate 360", "Tordon 75-D", "Starane Advanced")
         val outcomes = listOf(
             "Cut stumps painted immediately, good coverage achieved.",
             "Foliar spray applied across canopy. Regrowth expected in 60 days.",
@@ -301,7 +303,7 @@ class DemoSeeder @Inject constructor(
                     endTime = endTime,
                     areaName = spec.area,
                     checklistItems = checklistJson,
-                    notes = "Patrol complete. All visible Lantana logged and GPS-tagged.",
+                    notes = "Patrol complete. All visible invasive plants logged and GPS-tagged.",
                     syncStatus = synced,
                     rangerId = spec.ranger.id,
                 )
@@ -386,13 +388,13 @@ class DemoSeeder @Inject constructor(
         )
 
         val taskSpecs = listOf(
-            TaskSpec("Regrowth check \u2014 North Creek Gully", alice, "high", false, 14),
-            TaskSpec("Follow-up spray \u2014 Boundary Road East", bob, "high", false, 7),
-            TaskSpec("Photo documentation \u2014 Station Dam", carol, "medium", true, 21),
-            TaskSpec("Restock Garlon 600", alice, "medium", false, 3),
-            TaskSpec("Check biocontrol release site", bob, "low", false, 10),
-            TaskSpec("Update zone polygons after rain", carol, "medium", true, 18),
-            TaskSpec("Regrowth check \u2014 Mangrove Flat", alice, "high", false, 2),
+            TaskSpec("Lantana regrowth check \u2014 North Creek Gully", alice, "high", false, 14),
+            TaskSpec("Rubber vine follow-up spray \u2014 Boundary Road", bob, "high", false, 7),
+            TaskSpec("Photo documentation \u2014 Station Dam sicklepod", carol, "medium", true, 21),
+            TaskSpec("Restock Garlon 600 and Tordon 75-D", alice, "medium", false, 3),
+            TaskSpec("Check lantana biocontrol release site", bob, "low", false, 10),
+            TaskSpec("Update zone polygons after wet season rain", carol, "medium", true, 18),
+            TaskSpec("Pond apple mechanical removal \u2014 Mangrove Flat", alice, "high", false, 2),
         )
 
         for (spec in taskSpecs) {
@@ -436,12 +438,12 @@ class DemoSeeder @Inject constructor(
 
         // asset name -> variant keys that should use it
         val assetMap = listOf(
-            "demo_lantana_1" to listOf("pink"),
-            "demo_lantana_2" to listOf("red"),
-            "demo_lantana_3" to listOf("pinkEdgedRed"),
-            "demo_lantana_4" to listOf("orange"),
-            "demo_lantana_5" to listOf("white"),
-            "demo_lantana_6" to listOf("unknown"),
+            "demo_lantana_1" to listOf("lantana"),
+            "demo_lantana_2" to listOf("rubberVine"),
+            "demo_lantana_3" to listOf("pricklyAcacia"),
+            "demo_lantana_4" to listOf("giantRatsTailGrass"),
+            "demo_lantana_5" to listOf("pondApple"),
+            "demo_lantana_6" to listOf("sicklepod", "unknown"),
         )
 
         val variantPhotos = mutableMapOf<String, List<String>>()
@@ -486,7 +488,7 @@ class DemoSeeder @Inject constructor(
         System.currentTimeMillis() - days * DAY_MILLIS
 
     companion object {
-        private const val SEEDED_KEY = "demoDataSeeded_v2"
+        private const val SEEDED_KEY = "demoDataSeeded_v3"
         private val DAY_MILLIS = TimeUnit.DAYS.toMillis(1)
         private fun uuid(): String = UUID.randomUUID().toString()
     }

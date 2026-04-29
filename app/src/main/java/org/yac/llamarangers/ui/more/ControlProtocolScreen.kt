@@ -39,7 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.yac.llamarangers.domain.model.SeasonalAlert
 import org.yac.llamarangers.domain.model.enums.InfestationSize
-import org.yac.llamarangers.domain.model.enums.LantanaVariant
+import org.yac.llamarangers.domain.model.enums.InvasiveSpecies
 import org.yac.llamarangers.ui.components.SeasonalAlertBanner
 import org.yac.llamarangers.ui.components.VariantColourDot
 import org.yac.llamarangers.ui.theme.RangerGreen
@@ -69,7 +69,7 @@ fun ControlProtocolScreen(
     }
     val recentRain = prefs.getBoolean(SettingsViewModel.RECENT_RAIN_KEY, false)
 
-    var selectedVariant by remember { mutableStateOf<LantanaVariant?>(null) }
+    var selectedVariant by remember { mutableStateOf<InvasiveSpecies?>(null) }
     var selectedSize by remember { mutableStateOf<InfestationSize?>(null) }
     var biocontrolVisible by remember { mutableStateOf<BiocontrolAnswer?>(null) }
 
@@ -189,11 +189,11 @@ private fun StepCard(
 
 @Composable
 private fun ProtocolVariantPicker(
-    selectedVariant: LantanaVariant?,
-    onSelect: (LantanaVariant) -> Unit
+    selectedVariant: InvasiveSpecies?,
+    onSelect: (InvasiveSpecies) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        LantanaVariant.entries.forEach { variant ->
+        InvasiveSpecies.entries.forEach { variant ->
             val isSelected = selectedVariant == variant
             Button(
                 onClick = { onSelect(variant) },
@@ -255,7 +255,7 @@ private fun ProtocolSizePicker(
 
 @Composable
 private fun ProtocolResultCard(
-    variant: LantanaVariant,
+    variant: InvasiveSpecies,
     biocontrol: BiocontrolAnswer?
 ) {
     ElevatedCard(

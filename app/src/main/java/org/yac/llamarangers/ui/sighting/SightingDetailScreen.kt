@@ -47,13 +47,18 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.yac.llamarangers.data.local.entity.InfestationZoneEntity
 import org.yac.llamarangers.data.local.entity.TreatmentRecordEntity
-import org.yac.llamarangers.domain.model.enums.LantanaVariant
+import org.yac.llamarangers.domain.model.enums.InvasiveSpecies
 import org.yac.llamarangers.domain.model.enums.TreatmentMethod
 import org.yac.llamarangers.ui.components.SyncStatusBadge
 import org.yac.llamarangers.ui.components.VariantColourDot
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.ui.graphics.Color
 
 /**
  * Detailed view of a single sighting with treatments and zone assignment.
@@ -109,7 +114,7 @@ fun SightingDetailScreen(
             return@Scaffold
         }
 
-        val variant = viewModel.variant
+        val species = viewModel.species
         val size = viewModel.size
         val syncStatus = viewModel.syncStatus
         val assignedZone = viewModel.assignedZone
@@ -132,10 +137,10 @@ fun SightingDetailScreen(
                 ) {
                     // Variant name row
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        VariantColourDot(variant = variant, size = 20.dp)
+                        VariantColourDot(variant = species, size = 20.dp)
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
-                            text = variant.displayName,
+                            text = species.displayName,
                             style = MaterialTheme.typography.headlineSmall
                         )
                         Spacer(modifier = Modifier.weight(1f))
@@ -269,6 +274,13 @@ fun SightingDetailScreen(
             } else {
                 treatments.forEach { treatment ->
                     TreatmentCard(treatment = treatment)
+                    if (treatment.outcomeNotes?.startsWith("📷 After:") == true) {
+                        BeforeAfterCard(
+                            sighting = s,
+                            treatmentNotes = treatment.outcomeNotes!!,
+                            species = viewModel.species
+                        )
+                    }
                 }
             }
 
@@ -344,7 +356,7 @@ private fun ZonePickerSheet(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     VariantColourDot(
-                        variant = LantanaVariant.fromValue(zone.dominantVariant ?: ""),
+                        variant = InvasiveSpecies.fromValue(zone.dominantVariant ?: ""),
                         size = 12.dp
                     )
                     Spacer(modifier = Modifier.width(10.dp))
@@ -398,12 +410,149 @@ private fun TreatmentCard(treatment: TreatmentRecordEntity) {
             }
             val notes = treatment.outcomeNotes
             if (!notes.isNullOrBlank()) {
-                Text(
-                    text = notes,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                val display = if (notes.startsWith("📷 After:")) stripPhotoPrefix(notes) else notes
+                if (display.isNotBlank()) {
+                    Text(
+                        text = display,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }
 }
+
+private fun stripPhotoPrefix(notes: String): String {
+    val range = notes.indexOf(". ")
+    if (range == -1) return ""
+    return notes.substring(range + 2)
+}
+
+// ── Before/After Card ─────────────────────────────────────────────────────────
+
+@Composable
+private fun BeforeAfterCard(
+    sighting: org.yac.llamarangers.data.local.entity.SightingLogEntity,
+    treatmentNotes: String,
+    species: InvasiveSpecies
+) {
+    val afterCount = extractAfterCount(treatmentNotes)
+    val dateFormat = remember { SimpleDateFormat("MMM d, yyyy", Locale.getDefault()) }
+
+    ElevatedCard(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            HStack(spacing = 8.dp) {
+                Icon(
+                    Icons.Default.Check, // Closest to arrow.left.arrow.right without external library
+                    contentDescription = null,
+                    tint = Color(0xFFC4692A), // dsAccent
+                    modifier = Modifier.size(16.dp)
+                )
+                Text(
+                    "Before / After",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    "Comparison",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color(0xFFC4692A),
+                    modifier = Modifier
+                        .background(Color(0xFFC4692A).copy(alpha = 0.12f), shape = androidx.compose.foundation.shape.CircleShape)
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                )
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                // Before column
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(species.color.copy(alpha = 0.15f), shape = androidx.compose.foundation.shape.CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Check, // Need actual icon matching species.iconName ideally, fallback to check
+                            contentDescription = null,
+                            tint = species.color,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Text("Before", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
+                    Text("Sighting logged", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(dateFormat.format(Date(sighting.createdAt)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+
+                // Divider
+                Box(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .height(100.dp)
+                        .background(MaterialTheme.colorScheme.outlineVariant)
+                )
+
+                // After column
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(Color(0xFF2A7A4A).copy(alpha = 0.15f), shape = androidx.compose.foundation.shape.CircleShape), // dsStatusCleared
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = null,
+                            tint = Color(0xFF2A7A4A),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Text("After", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
+                    Text("Treatment applied", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("$afterCount photo(s)", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+    }
+}
+
+private fun extractAfterCount(notes: String): Int {
+    val start = notes.indexOf("📷 After: ")
+    if (start == -1) return 0
+    val end = notes.indexOf(" photo", start)
+    if (end == -1) return 0
+    return notes.substring(start + 10, end).toIntOrNull() ?: 0
+}
+
+// Helpers for VStack/HStack matching SwiftUI layout behavior
+@Composable
+private fun HStack(
+    modifier: Modifier = Modifier,
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
+    verticalAlignment: Alignment.Vertical = Alignment.CenterVertically,
+    spacing: androidx.compose.ui.unit.Dp = 0.dp,
+    content: @Composable RowScope.() -> Unit
+) {
+    val arrangement = if (spacing > 0.dp) Arrangement.spacedBy(spacing) else horizontalArrangement
+    Row(
+        modifier = modifier,
+        horizontalArrangement = arrangement,
+        verticalAlignment = verticalAlignment,
+        content = content
+    )
+}
+
+

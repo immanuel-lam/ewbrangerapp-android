@@ -54,7 +54,7 @@ val ZoneActive = Color(0xFFBA1A1A)
 val ZoneUnderTreatment = Color(0xFFBF5B00)
 val ZoneCleared = Color(0xFF2D6A4F)
 
-// ── Variant colours (matching iOS LantanaVariant.color) ──────────────────────
+// ── Variant colours (matching iOS InvasiveSpecies.color) ──────────────────────
 val VariantPink = Color(0xFFFF69B4)
 val VariantRed = Color(0xFFBA1A1A)
 val VariantPinkEdgedRed = Color(0xFFD94F6F)

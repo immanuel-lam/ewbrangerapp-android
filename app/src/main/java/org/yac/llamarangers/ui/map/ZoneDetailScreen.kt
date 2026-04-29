@@ -44,7 +44,7 @@ import org.yac.llamarangers.data.local.entity.SightingLogEntity
 import org.yac.llamarangers.domain.model.enums.InfestationSize
 import org.yac.llamarangers.data.repository.SightingRepository
 import org.yac.llamarangers.data.repository.ZoneRepository
-import org.yac.llamarangers.domain.model.enums.LantanaVariant
+import org.yac.llamarangers.domain.model.enums.InvasiveSpecies
 import org.yac.llamarangers.ui.components.VariantColourDot
 import org.yac.llamarangers.ui.theme.RangerGreen
 import org.yac.llamarangers.ui.theme.RangerOrange
@@ -173,7 +173,7 @@ fun ZoneDetailScreen(
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 VariantColourDot(
-                                    variant = LantanaVariant.fromValue(z.dominantVariant ?: ""),
+                                    variant = InvasiveSpecies.fromValue(z.dominantVariant ?: ""),
                                     size = 14.dp
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -192,7 +192,7 @@ fun ZoneDetailScreen(
                                 Row {
                                     Text("Variant: ", style = MaterialTheme.typography.bodyMedium)
                                     Text(
-                                        LantanaVariant.fromValue(dv).displayName,
+                                        InvasiveSpecies.fromValue(dv).displayName,
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -273,13 +273,13 @@ fun ZoneDetailScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         VariantColourDot(
-                            variant = LantanaVariant.fromValue(sighting.variant),
+                            variant = InvasiveSpecies.fromValue(sighting.variant),
                             size = 10.dp
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = LantanaVariant.fromValue(sighting.variant).displayName,
+                                text = InvasiveSpecies.fromValue(sighting.variant).displayName,
                                 style = MaterialTheme.typography.bodyMedium
                             )
                             Text(

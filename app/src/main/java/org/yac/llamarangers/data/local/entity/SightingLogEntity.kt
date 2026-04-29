@@ -43,6 +43,8 @@ data class SightingLogEntity(
     val variant: String,
     @ColumnInfo(name = "infestation_size")
     val infestationSize: String,
+    @ColumnInfo(name = "infestation_area_estimate")
+    val infestationAreaEstimate: String?,
     val notes: String?,
     @ColumnInfo(name = "photo_filenames")
     val photoFilenames: List<String>, // JSON array of strings, Room TypeConverter
@@ -50,6 +52,8 @@ data class SightingLogEntity(
     val deviceId: String?,
     @ColumnInfo(name = "server_id")
     val serverId: String?,
+    @ColumnInfo(name = "voice_note_path")
+    val voiceNotePath: String?,
     @ColumnInfo(name = "sync_status")
     val syncStatus: Int,
     @ColumnInfo(name = "ranger_id")

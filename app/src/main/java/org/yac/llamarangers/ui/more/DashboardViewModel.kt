@@ -15,7 +15,7 @@ import org.yac.llamarangers.data.local.dao.RangerTaskDao
 import org.yac.llamarangers.data.local.dao.SightingLogDao
 import org.yac.llamarangers.data.local.dao.SyncQueueDao
 import org.yac.llamarangers.data.local.dao.TreatmentRecordDao
-import org.yac.llamarangers.domain.model.enums.LantanaVariant
+import org.yac.llamarangers.domain.model.enums.InvasiveSpecies
 import java.util.Calendar
 import javax.inject.Inject
 
@@ -163,7 +163,7 @@ class DashboardViewModel @Inject constructor(
             val byVariant = monthSightings.groupBy { it.variant }
             for ((variant, sightings) in byVariant) {
                 val label = try {
-                    LantanaVariant.fromValue(variant).displayName
+                    InvasiveSpecies.fromValue(variant).displayName
                 } catch (_: Exception) {
                     variant.replaceFirstChar { it.uppercase() }
                 }

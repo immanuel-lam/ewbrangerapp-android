@@ -1,7 +1,8 @@
 package org.yac.llamarangers.ui.more
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.*
+import androidx.compose.ui.graphics.*
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,6 +22,9 @@ import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.filled.Park
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.WaterDrop
+import androidx.compose.material.icons.filled.BackHand
+import androidx.compose.material.icons.filled.Vaccines
+import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -46,7 +50,7 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.yac.llamarangers.domain.model.SeasonalAlert
-import org.yac.llamarangers.domain.model.enums.LantanaVariant
+import org.yac.llamarangers.domain.model.enums.InvasiveSpecies
 import org.yac.llamarangers.domain.model.enums.TreatmentMethod
 import org.yac.llamarangers.ui.components.SeasonalAlertBanner
 import org.yac.llamarangers.ui.theme.RangerGreen
@@ -61,7 +65,7 @@ fun VariantDetailScreen(
     variantValue: String,
     onNavigateBack: () -> Unit = {}
 ) {
-    val variant = LantanaVariant.fromValue(variantValue)
+    val variant = InvasiveSpecies.fromValue(variantValue)
     val headerTextColor = if (variant.color.luminance() > 0.65f) Color.Black else Color.White
     val variantColor = variant.color
 
@@ -224,4 +228,7 @@ private fun treatmentMethodIcon(method: TreatmentMethod): ImageVector = when (me
     TreatmentMethod.SPLAT_GUN -> Icons.Default.CropSquare
     TreatmentMethod.FOLIAR_SPRAY -> Icons.Default.WaterDrop
     TreatmentMethod.BASAL_BARK -> Icons.Default.Park
+    TreatmentMethod.MECHANICAL -> Icons.Default.BackHand
+    TreatmentMethod.STEM_INJECTION -> Icons.Default.Vaccines
+    TreatmentMethod.FIRE_MANAGEMENT -> Icons.Default.LocalFireDepartment
 }

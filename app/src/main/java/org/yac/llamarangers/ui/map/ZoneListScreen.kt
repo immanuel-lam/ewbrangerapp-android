@@ -32,7 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.yac.llamarangers.data.local.entity.InfestationZoneEntity
-import org.yac.llamarangers.domain.model.enums.LantanaVariant
+import org.yac.llamarangers.domain.model.enums.InvasiveSpecies
 import org.yac.llamarangers.ui.components.VariantColourDot
 import org.yac.llamarangers.ui.theme.RangerGreen
 import org.yac.llamarangers.ui.theme.RangerOrange
@@ -109,7 +109,7 @@ private fun ZoneCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             VariantColourDot(
-                variant = LantanaVariant.fromValue(zone.dominantVariant ?: ""),
+                variant = InvasiveSpecies.fromValue(zone.dominantVariant ?: ""),
                 size = 14.dp
             )
             Spacer(modifier = Modifier.width(12.dp))

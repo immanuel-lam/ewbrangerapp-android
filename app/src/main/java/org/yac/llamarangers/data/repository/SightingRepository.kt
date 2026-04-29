@@ -7,7 +7,7 @@ import org.yac.llamarangers.data.local.dao.SyncQueueDao
 import org.yac.llamarangers.data.local.entity.SightingLogEntity
 import org.yac.llamarangers.data.local.entity.SyncQueueEntity
 import org.yac.llamarangers.domain.model.enums.InfestationSize
-import org.yac.llamarangers.domain.model.enums.LantanaVariant
+import org.yac.llamarangers.domain.model.enums.InvasiveSpecies
 import org.yac.llamarangers.domain.model.enums.SyncStatus
 import java.util.UUID
 import javax.inject.Inject
@@ -33,7 +33,7 @@ class SightingRepository @Inject constructor(
         latitude: Double,
         longitude: Double,
         horizontalAccuracy: Double,
-        variant: LantanaVariant,
+        variant: InvasiveSpecies,
         infestationSize: InfestationSize,
         notes: String?,
         photoFilenames: List<String>,
@@ -52,10 +52,12 @@ class SightingRepository @Inject constructor(
             horizontalAccuracy = horizontalAccuracy,
             variant = variant.value,
             infestationSize = infestationSize.value,
+            infestationAreaEstimate = null,
             notes = notes,
             photoFilenames = photoFilenames,
             deviceId = deviceId,
             serverId = null,
+            voiceNotePath = null,
             syncStatus = SyncStatus.PENDING_CREATE.value,
             rangerId = rangerId,
             infestationZoneId = null

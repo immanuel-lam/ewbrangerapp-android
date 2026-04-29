@@ -15,7 +15,7 @@ import org.yac.llamarangers.data.local.entity.TreatmentRecordEntity
 import org.yac.llamarangers.data.repository.TreatmentRepository
 import org.yac.llamarangers.data.repository.ZoneRepository
 import org.yac.llamarangers.domain.model.enums.InfestationSize
-import org.yac.llamarangers.domain.model.enums.LantanaVariant
+import org.yac.llamarangers.domain.model.enums.InvasiveSpecies
 import org.yac.llamarangers.domain.model.enums.SyncStatus
 import org.yac.llamarangers.ui.navigation.Screen
 import javax.inject.Inject
@@ -79,8 +79,8 @@ class SightingDetailViewModel @Inject constructor(
         }
     }
 
-    val variant: LantanaVariant
-        get() = _sighting.value?.let { LantanaVariant.fromValue(it.variant) } ?: LantanaVariant.UNKNOWN
+    val species: InvasiveSpecies
+        get() = _sighting.value?.let { InvasiveSpecies.fromValue(it.variant ?: "") } ?: InvasiveSpecies.UNKNOWN
 
     val size: InfestationSize
         get() = _sighting.value?.let { InfestationSize.fromValue(it.infestationSize) } ?: InfestationSize.SMALL

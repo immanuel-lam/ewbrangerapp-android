@@ -23,7 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import org.yac.llamarangers.domain.model.enums.LantanaVariant
+import org.yac.llamarangers.domain.model.enums.InvasiveSpecies
 
 /**
  * Horizontal scrolling variant picker.
@@ -31,8 +31,8 @@ import org.yac.llamarangers.domain.model.enums.LantanaVariant
  */
 @Composable
 fun VariantPicker(
-    selectedVariant: LantanaVariant?,
-    onVariantSelected: (LantanaVariant) -> Unit,
+    selectedVariant: InvasiveSpecies?,
+    onVariantSelected: (InvasiveSpecies) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
@@ -48,7 +48,7 @@ fun VariantPicker(
                 .horizontalScroll(rememberScrollState())
                 .padding(horizontal = 2.dp)
         ) {
-            LantanaVariant.entries.forEach { variant ->
+            InvasiveSpecies.entries.forEach { variant ->
                 VariantCard(
                     variant = variant,
                     isSelected = selectedVariant == variant,
@@ -62,7 +62,7 @@ fun VariantPicker(
 
 @Composable
 private fun VariantCard(
-    variant: LantanaVariant,
+    variant: InvasiveSpecies,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {

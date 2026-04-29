@@ -31,7 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import org.yac.llamarangers.domain.model.enums.LantanaVariant
+import org.yac.llamarangers.domain.model.enums.InvasiveSpecies
 import org.yac.llamarangers.ui.components.VariantColourDot
 
 /**
@@ -44,7 +44,7 @@ fun VariantGuideScreen(
     onNavigateBack: () -> Unit = {},
     onNavigateToDetail: (variantValue: String) -> Unit = {}
 ) {
-    val variants = LantanaVariant.entries.filter { it != LantanaVariant.UNKNOWN }
+    val variants = InvasiveSpecies.entries.filter { it != InvasiveSpecies.UNKNOWN }
 
     Scaffold(
         topBar = {
@@ -77,7 +77,7 @@ fun VariantGuideScreen(
 
 @Composable
 private fun VariantGuideCard(
-    variant: LantanaVariant,
+    variant: InvasiveSpecies,
     onClick: () -> Unit
 ) {
     ElevatedCard(

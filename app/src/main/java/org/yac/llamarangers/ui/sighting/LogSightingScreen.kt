@@ -11,7 +11,8 @@ import androidx.core.content.ContextCompat
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.*
+import androidx.compose.ui.graphics.*
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -66,7 +67,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.yac.llamarangers.domain.model.enums.InfestationSize
-import org.yac.llamarangers.domain.model.enums.LantanaVariant
+import org.yac.llamarangers.domain.model.enums.InvasiveSpecies
 import org.yac.llamarangers.service.location.LocationManager
 import org.yac.llamarangers.ui.components.LargeButton
 import org.yac.llamarangers.ui.components.VariantColourDot
@@ -74,9 +75,14 @@ import org.yac.llamarangers.ui.theme.RangerGreen
 import java.io.File
 import java.util.UUID
 
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.Button
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+
 /**
  * Form for logging a new sighting — M3 polish pass.
- * Ports iOS LogSightingView.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,8 +92,9 @@ fun LogSightingScreen(
 ) {
     val capturedLocation by viewModel.capturedLocation.collectAsState()
     val accuracyLevel by viewModel.accuracyLevel.collectAsState()
-    val selectedVariant by viewModel.selectedVariant.collectAsState()
+    val selectedSpecies by viewModel.selectedSpecies.collectAsState()
     val selectedSize by viewModel.selectedSize.collectAsState()
+    val biocontrolObservation by viewModel.biocontrolObservation.collectAsState()
     val notes by viewModel.notes.collectAsState()
     val photoFilenames by viewModel.photoFilenames.collectAsState()
     val isSaving by viewModel.isSaving.collectAsState()
@@ -126,14 +133,21 @@ fun LogSightingScreen(
                 onRecapture = { viewModel.recaptureLocation() }
             )
 
-            // ── Variant Section ──────────────────────────────────────────────
+            // ── Species Section ──────────────────────────────────────────────
             HorizontalDivider()
-            SectionHeader(title = "Variant")
+            SectionHeader(title = "Species")
             HorizontalDivider()
             VariantSection(
-                selectedVariant = selectedVariant,
-                onVariantSelected = { viewModel.setSelectedVariant(it) }
+                selectedVariant = selectedSpecies,
+                onVariantSelected = { viewModel.setSelectedSpecies(it) }
             )
+
+            if (selectedSpecies == InvasiveSpecies.LANTANA) {
+                BiocontrolPromptCard(
+                    observation = biocontrolObservation,
+                    onObservationSelected = { viewModel.setBiocontrolObservation(it) }
+                )
+            }
 
             // ── Size Section ─────────────────────────────────────────────────
             HorizontalDivider()
@@ -273,14 +287,14 @@ private fun AccuracyDot(level: LocationManager.AccuracyLevel) {
 
 @Composable
 private fun VariantSection(
-    selectedVariant: LantanaVariant?,
-    onVariantSelected: (LantanaVariant) -> Unit
+    selectedVariant: InvasiveSpecies?,
+    onVariantSelected: (InvasiveSpecies) -> Unit
 ) {
     LazyRow(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(LantanaVariant.entries) { variant ->
+        items(InvasiveSpecies.entries) { variant ->
             FilterChip(
                 selected = selectedVariant == variant,
                 onClick = { onVariantSelected(variant) },
@@ -457,3 +471,135 @@ private fun PhotoPlaceholderContent() {
         )
     }
 }
+
+// ── Lantana Biocontrol Prompt ──────────────────────────────────────────────────
+
+@Composable
+fun BiocontrolPromptCard(
+    observation: BiocontrolObservation,
+    onObservationSelected: (BiocontrolObservation) -> Unit
+) {
+    ElevatedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        colors = androidx.compose.material3.CardDefaults.elevatedCardColors(
+            containerColor = Color(0xFFFFF3CD)
+        )
+    ) {
+        VStack(spacing = 12.dp) {
+            HStack(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 12.dp),
+                spacing = 8.dp
+            ) {
+                Icon(
+                    Icons.Default.Close, // Using Close temporarily, should be an ant/bug icon but Android doesn't have a default ant icon
+                    contentDescription = null,
+                    tint = Color(0xFF856404),
+                    modifier = Modifier.size(18.dp)
+                )
+                VStack(horizontalAlignment = Alignment.Start, spacing = 2.dp) {
+                    Text(
+                        "Lantana Bug Check",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        "Is Aconophora compressa (Lantana bug) present?",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Spacer(modifier = Modifier.weight(1f))
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                val options = listOf(
+                    BiocontrolObservation.OBSERVED to "Observed",
+                    BiocontrolObservation.NOT_OBSERVED to "Not Seen",
+                    BiocontrolObservation.UNSURE to "Unsure"
+                )
+
+                options.forEach { (value, label) ->
+                    Button(
+                        onClick = { onObservationSelected(value) },
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                            containerColor = if (observation == value) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+                            contentColor = if (observation == value) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                        ),
+                        modifier = Modifier.weight(1f).height(40.dp)
+                    ) {
+                        Text(label, style = MaterialTheme.typography.labelSmall)
+                    }
+                }
+            }
+
+            if (observation == BiocontrolObservation.OBSERVED) {
+                HStack(
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .background(Color(0xFFC4692A).copy(alpha = 0.08f), shape = RoundedCornerShape(10.dp))
+                        .clip(RoundedCornerShape(10.dp))
+                        .padding(bottom = 12.dp, start = 12.dp, end = 12.dp),
+                    spacing = 8.dp
+                ) {
+                    Icon(
+                        Icons.Default.Info,
+                        contentDescription = null,
+                        tint = Color(0xFFC4692A), // dsAccent
+                        modifier = Modifier.size(13.dp)
+                    )
+                    Text(
+                        "Biocontrol present — consider delaying foliar spray",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color(0xFFC4692A)
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            } else {
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+        }
+    }
+}
+
+// Helpers for VStack/HStack matching SwiftUI layout behavior
+@Composable
+private fun HStack(
+    modifier: Modifier = Modifier,
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
+    verticalAlignment: Alignment.Vertical = Alignment.CenterVertically,
+    spacing: androidx.compose.ui.unit.Dp = 0.dp,
+    content: @Composable RowScope.() -> Unit
+) {
+    val arrangement = if (spacing > 0.dp) Arrangement.spacedBy(spacing) else horizontalArrangement
+    Row(
+        modifier = modifier,
+        horizontalArrangement = arrangement,
+        verticalAlignment = verticalAlignment,
+        content = content
+    )
+}
+
+@Composable
+private fun VStack(
+    modifier: Modifier = Modifier,
+    verticalArrangement: Arrangement.Vertical = Arrangement.Top,
+    horizontalAlignment: Alignment.Horizontal = Alignment.Start,
+    spacing: androidx.compose.ui.unit.Dp = 0.dp,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    val arrangement = if (spacing > 0.dp) Arrangement.spacedBy(spacing) else verticalArrangement
+    Column(
+        modifier = modifier,
+        verticalArrangement = arrangement,
+        horizontalAlignment = horizontalAlignment,
+        content = content
+    )
+}
+

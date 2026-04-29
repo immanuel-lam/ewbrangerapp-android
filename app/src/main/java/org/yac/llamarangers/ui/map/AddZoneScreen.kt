@@ -35,7 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.yac.llamarangers.data.repository.ZoneRepository
-import org.yac.llamarangers.domain.model.enums.LantanaVariant
+import org.yac.llamarangers.domain.model.enums.InvasiveSpecies
 import org.yac.llamarangers.ui.components.VariantColourDot
 
 /**
@@ -51,7 +51,7 @@ fun AddZoneScreen(
     onNavigateBack: () -> Unit = {}
 ) {
     var zoneName by remember { mutableStateOf("") }
-    var selectedVariant by remember { mutableStateOf(LantanaVariant.UNKNOWN) }
+    var selectedVariant by remember { mutableStateOf(InvasiveSpecies.UNKNOWN) }
     var selectedStatus by remember { mutableStateOf("active") }
     var isSaving by remember { mutableStateOf(false) }
     var variantExpanded by remember { mutableStateOf(false) }
@@ -143,7 +143,7 @@ fun AddZoneScreen(
                     expanded = variantExpanded,
                     onDismissRequest = { variantExpanded = false }
                 ) {
-                    LantanaVariant.entries.forEach { v ->
+                    InvasiveSpecies.entries.forEach { v ->
                         DropdownMenuItem(
                             text = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
