@@ -1,9 +1,12 @@
 package org.yac.llamarangers.ui.sighting
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -73,6 +76,20 @@ fun PhotoCaptureView(
         }
     }
 
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) cameraLauncher.launch(tempUri)
+    }
+
+    fun launchCamera() {
+        val granted = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+        if (granted) cameraLauncher.launch(tempUri)
+        else permissionLauncher.launch(Manifest.permission.CAMERA)
+    }
+
     Column(modifier = modifier) {
         Text(
             text = "Photos (${photoFilenames.size}/3)",
@@ -93,7 +110,7 @@ fun PhotoCaptureView(
                         .size(80.dp)
                         .clip(RoundedCornerShape(10.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .clickable { cameraLauncher.launch(tempUri) },
+                        .clickable { launchCamera() },
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {

@@ -222,8 +222,10 @@ fun MapScreen(
                 }
 
                 // --- Sighting markers ---
-                if (showSightings) {
-                    viewModel.filteredSightings.forEach { sighting ->
+                val visibleSightings = if (showSightings) {
+                    sightings.filter { it.createdAt <= timelineDate }
+                } else emptyList()
+                visibleSightings.forEach { sighting ->
                         val variant = LantanaVariant.fromValue(sighting.variant)
                         val marker = Marker(mapView).apply {
                             position = GeoPoint(sighting.latitude, sighting.longitude)
@@ -267,7 +269,6 @@ fun MapScreen(
                         }
                         mapView.overlays.add(marker)
                     }
-                }
 
                 // --- Patrol markers ---
                 if (showPatrols) {
