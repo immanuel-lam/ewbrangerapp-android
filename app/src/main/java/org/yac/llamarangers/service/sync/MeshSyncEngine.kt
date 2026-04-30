@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.util.Collections
 import java.util.Date
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -91,8 +92,9 @@ class MeshSyncEngine @Inject constructor(
     private val _overallPhase = MutableStateFlow<SyncPhase>(SyncPhase.Idle)
     val overallPhase: StateFlow<SyncPhase> = _overallPhase.asStateFlow()
 
-    // Connected endpoint IDs
-    private val connectedEndpoints = mutableSetOf<String>()
+    // Connected endpoint IDs (accessed from Nearby callback threads)
+    private val connectedEndpoints: MutableSet<String> =
+        Collections.synchronizedSet(mutableSetOf())
 
     /**
      * Callback to build the local manifest. Set by AppEnvironment or DI.
@@ -228,14 +230,24 @@ class MeshSyncEngine @Inject constructor(
         return manifestBuilder?.invoke() ?: emptyList()
     }
 
-    private suspend fun sendManifest(endpointId: String) = mutex.withLock {
-        val manifest = buildManifest()
-        val message = mapOf(
-            "type" to "manifest",
-            "entries" to manifest
-        )
-        val data = gson.toJson(message).toByteArray(Charsets.UTF_8)
-        connectionsClient.sendPayload(endpointId, Payload.fromBytes(data))
+    private suspend fun sendManifest(endpointId: String) {
+        try {
+            mutex.withLock {
+                val manifest = buildManifest()
+                val message = mapOf(
+                    "type" to "manifest",
+                    "entries" to manifest
+                )
+                val data = gson.toJson(message).toByteArray(Charsets.UTF_8)
+                connectionsClient.sendPayload(endpointId, Payload.fromBytes(data))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to send manifest to $endpointId", e)
+            val peerName = _discoveredPeers.value
+                .find { it.endpointId == endpointId }?.name ?: endpointId
+            _peerPhases.value = _peerPhases.value +
+                (endpointId to SyncPhase.Failed(peerName, e.message ?: "Manifest send failed"))
+        }
     }
 
     // --- Data handling ---
@@ -251,24 +263,35 @@ class MeshSyncEngine @Inject constructor(
 
         val type = parsed["type"] as? String ?: return
 
-        when (type) {
-            "manifest" -> {
-                val entriesJson = gson.toJson(parsed["entries"])
-                val entriesType = object : TypeToken<List<ManifestEntry>>() {}.type
-                val theirEntries: List<ManifestEntry> = gson.fromJson(entriesJson, entriesType)
-                val myEntries = buildManifest()
-                val needed = diffManifest(theirEntries, myEntries)
-                sendRecordRequests(needed, fromEndpoint)
+        try {
+            when (type) {
+                "manifest" -> {
+                    val entriesJson = gson.toJson(parsed["entries"])
+                    val entriesType = object : TypeToken<List<ManifestEntry>>() {}.type
+                    val theirEntries: List<ManifestEntry> = gson.fromJson(entriesJson, entriesType)
+                    val myEntries = buildManifest()
+                    val needed = diffManifest(theirEntries, myEntries)
+                    sendRecordRequests(needed, fromEndpoint)
+                }
+                "request" -> {
+                    @Suppress("UNCHECKED_CAST")
+                    val ids = (parsed["ids"] as? List<*>)?.filterIsInstance<String>() ?: return
+                    sendRequestedRecords(ids, fromEndpoint)
+                }
+                "records" -> {
+                    val recordsJson = gson.toJson(parsed["records"])
+                    receiveRecords(recordsJson, fromEndpoint)
+                }
+                else -> {
+                    Log.w(TAG, "Unknown mesh message type: $type")
+                }
             }
-            "request" -> {
-                @Suppress("UNCHECKED_CAST")
-                val ids = (parsed["ids"] as? List<*>)?.filterIsInstance<String>() ?: return
-                sendRequestedRecords(ids, fromEndpoint)
-            }
-            "records" -> {
-                val recordsJson = gson.toJson(parsed["records"])
-                receiveRecords(recordsJson, fromEndpoint)
-            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error processing mesh message type=$type from $fromEndpoint", e)
+            val peerName = _discoveredPeers.value
+                .find { it.endpointId == fromEndpoint }?.name ?: fromEndpoint
+            _peerPhases.value = _peerPhases.value +
+                (fromEndpoint to SyncPhase.Failed(peerName, e.message ?: "Unknown error"))
         }
     }
 

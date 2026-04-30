@@ -1,5 +1,6 @@
 package org.yac.llamarangers.service.sync
 
+import java.util.Collections
 import java.util.Date
 import java.util.UUID
 import javax.inject.Inject
@@ -42,7 +43,8 @@ class SyncQueueManager @Inject constructor() {
         override fun hashCode(): Int = id.hashCode()
     }
 
-    private val queue = mutableListOf<SyncQueueEntry>()
+    private val queue: MutableList<SyncQueueEntry> =
+        Collections.synchronizedList(mutableListOf())
 
     /**
      * Enqueue a new sync operation.
@@ -66,7 +68,9 @@ class SyncQueueManager @Inject constructor() {
      * Returns all pending entries sorted by creation date (oldest first).
      */
     fun pendingEntries(): List<SyncQueueEntry> {
-        return queue.sortedBy { it.createdAt }
+        synchronized(queue) {
+            return queue.sortedBy { it.createdAt }
+        }
     }
 
     /**
@@ -89,7 +93,7 @@ class SyncQueueManager @Inject constructor() {
      * Returns true if any entries have exceeded the failure threshold.
      */
     val hasPersistentFailures: Boolean
-        get() = queue.any { it.attemptCount >= FAILURE_THRESHOLD }
+        get() = synchronized(queue) { queue.any { it.attemptCount >= FAILURE_THRESHOLD } }
 
     /**
      * Number of pending sync operations.

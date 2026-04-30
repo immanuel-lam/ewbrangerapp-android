@@ -41,7 +41,11 @@ class LoginViewModel @Inject constructor(
 
     private fun loadRangers() {
         viewModelScope.launch {
-            _rangers.value = rangerRepository.fetchAllRangers()
+            try {
+                _rangers.value = rangerRepository.fetchAllRangers()
+            } catch (e: Exception) {
+                _loginError.value = "Failed to load rangers: ${e.message}"
+            }
         }
     }
 

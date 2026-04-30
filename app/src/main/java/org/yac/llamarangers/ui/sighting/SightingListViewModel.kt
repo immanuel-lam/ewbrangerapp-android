@@ -49,10 +49,14 @@ class SightingListViewModel @Inject constructor(
 
     fun load() {
         viewModelScope.launch {
-            _sightings.value = sightingRepository.fetchAllSightings()
-            // Load ranger names for display in sighting rows
-            val rangers = rangerRepository.fetchAllRangers()
-            _rangerNames.value = rangers.associate { it.id to (it.displayName ?: "Ranger") }
+            try {
+                _sightings.value = sightingRepository.fetchAllSightings()
+                // Load ranger names for display in sighting rows
+                val rangers = rangerRepository.fetchAllRangers()
+                _rangerNames.value = rangers.associate { it.id to (it.displayName ?: "Ranger") }
+            } catch (_: Exception) {
+                // Keep last-known state
+            }
         }
     }
 
@@ -82,7 +86,9 @@ class SightingListViewModel @Inject constructor(
 
     fun delete(sightingId: String) {
         viewModelScope.launch {
-            sightingRepository.deleteSighting(sightingId)
+            try {
+                sightingRepository.deleteSighting(sightingId)
+            } catch (_: Exception) { /* best-effort */ }
             load()
         }
     }

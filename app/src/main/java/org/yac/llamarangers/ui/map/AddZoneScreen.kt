@@ -54,6 +54,7 @@ fun AddZoneScreen(
     var selectedVariant by remember { mutableStateOf(InvasiveSpecies.UNKNOWN) }
     var selectedStatus by remember { mutableStateOf("active") }
     var isSaving by remember { mutableStateOf(false) }
+    var saveError by remember { mutableStateOf<String?>(null) }
     var variantExpanded by remember { mutableStateOf(false) }
     var statusExpanded by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -76,16 +77,18 @@ fun AddZoneScreen(
                 actions = {
                     TextButton(
                         onClick = {
-                            if (zoneName.isBlank()) return@TextButton
+                            saveError = null
                             isSaving = true
                             scope.launch {
                                 try {
                                     zoneRepository.createZone(
                                         name = zoneName.ifBlank { null },
-                                        dominantVariant = selectedVariant
+                                        dominantVariant = selectedVariant,
+                                        status = selectedStatus
                                     )
                                     onNavigateBack()
-                                } catch (_: Exception) {
+                                } catch (e: Exception) {
+                                    saveError = e.localizedMessage ?: "Failed to save zone"
                                     isSaving = false
                                 }
                             }
@@ -110,6 +113,16 @@ fun AddZoneScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
+
+            // Error message
+            saveError?.let { error ->
+                Text(
+                    text = error,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
 
             // Zone name field
             OutlinedTextField(

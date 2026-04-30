@@ -99,37 +99,41 @@ class MapViewModel @Inject constructor(
 
     fun load() {
         viewModelScope.launch {
-            _sightings.value = sightingRepository.fetchAllSightings()
-            _zones.value = zoneRepository.fetchAllZones()
-            _patrols.value = patrolRepository.fetchAllPatrols()
+            try {
+                _sightings.value = sightingRepository.fetchAllSightings()
+                _zones.value = zoneRepository.fetchAllZones()
+                _patrols.value = patrolRepository.fetchAllPatrols()
 
-            // Load latest snapshot per zone and sightings per zone for circle fallback
-            val snapshots = mutableMapOf<String, InfestationZoneSnapshotEntity>()
-            val sightingsMap = mutableMapOf<String, List<Pair<Double, Double>>>()
+                // Load latest snapshot per zone and sightings per zone for circle fallback
+                val snapshots = mutableMapOf<String, InfestationZoneSnapshotEntity>()
+                val sightingsMap = mutableMapOf<String, List<Pair<Double, Double>>>()
 
-            for (zone in _zones.value) {
-                val zoneSnapshots = zoneRepository.fetchSnapshotsForZone(zone.id)
-                // fetchSnapshotsForZone returns ordered by snapshot_date DESC, so first is latest
-                zoneSnapshots.firstOrNull()?.let { snapshots[zone.id] = it }
+                for (zone in _zones.value) {
+                    val zoneSnapshots = zoneRepository.fetchSnapshotsForZone(zone.id)
+                    // fetchSnapshotsForZone returns ordered by snapshot_date DESC, so first is latest
+                    zoneSnapshots.firstOrNull()?.let { snapshots[zone.id] = it }
 
-                // Load sightings for circle fallback (only if no snapshot)
-                if (zoneSnapshots.isEmpty()) {
-                    val zoneSightings = zoneRepository.fetchSightingsForZone(zone.id)
-                    if (zoneSightings.isNotEmpty()) {
-                        sightingsMap[zone.id] = zoneSightings.map { it.latitude to it.longitude }
+                    // Load sightings for circle fallback (only if no snapshot)
+                    if (zoneSnapshots.isEmpty()) {
+                        val zoneSightings = zoneRepository.fetchSightingsForZone(zone.id)
+                        if (zoneSightings.isNotEmpty()) {
+                            sightingsMap[zone.id] = zoneSightings.map { it.latitude to it.longitude }
+                        }
                     }
                 }
-            }
 
-            _zoneSnapshots.value = snapshots
-            _zoneSightings.value = sightingsMap
-            _sightingCountsByZone.value = _sightings.value
-                .groupBy { it.infestationZoneId ?: "" }
-                .filterKeys { it.isNotEmpty() }
-                .mapValues { (_, v) -> v.size }
+                _zoneSnapshots.value = snapshots
+                _zoneSightings.value = sightingsMap
+                _sightingCountsByZone.value = _sightings.value
+                    .groupBy { it.infestationZoneId ?: "" }
+                    .filterKeys { it.isNotEmpty() }
+                    .mapValues { (_, v) -> v.size }
 
-            if (!_isPlayingTimeline.value) {
-                _timelineDate.value = System.currentTimeMillis()
+                if (!_isPlayingTimeline.value) {
+                    _timelineDate.value = System.currentTimeMillis()
+                }
+            } catch (_: Exception) {
+                // Data remains at last-known state; map stays usable
             }
         }
     }
@@ -256,39 +260,50 @@ class MapViewModel @Inject constructor(
         val coordinates = vertices.map { listOf(it.first, it.second) }
 
         viewModelScope.launch {
-            zoneRepository.addSnapshot(
-                zoneId = zone.id,
-                coordinates = coordinates,
-                area = 0.0,
-                createdByRangerId = rangerId
-            )
-            // Clear draw mode
-            _isDrawing.value = false
-            _drawingZone.value = null
-            _drawVertices.value = emptyList()
-            // Reload data
-            load()
+            try {
+                zoneRepository.addSnapshot(
+                    zoneId = zone.id,
+                    coordinates = coordinates,
+                    area = 0.0,
+                    createdByRangerId = rangerId
+                )
+                // Clear draw mode only on success
+                _isDrawing.value = false
+                _drawingZone.value = null
+                _drawVertices.value = emptyList()
+                // Reload data
+                load()
+            } catch (_: Exception) {
+                // Keep draw mode open so the user can retry;
+                // vertices are preserved
+            }
         }
     }
 
     // --- Delete actions ---
     fun deleteSighting(sightingId: String) {
         viewModelScope.launch {
-            sightingRepository.deleteSighting(sightingId)
+            try {
+                sightingRepository.deleteSighting(sightingId)
+            } catch (_: Exception) { /* best-effort */ }
             load()
         }
     }
 
     fun deletePatrol(patrolId: String) {
         viewModelScope.launch {
-            patrolRepository.deletePatrol(patrolId)
+            try {
+                patrolRepository.deletePatrol(patrolId)
+            } catch (_: Exception) { /* best-effort */ }
             load()
         }
     }
 
     fun deleteZone(zoneId: String) {
         viewModelScope.launch {
-            zoneRepository.deleteZone(zoneId)
+            try {
+                zoneRepository.deleteZone(zoneId)
+            } catch (_: Exception) { /* best-effort */ }
             load()
         }
     }

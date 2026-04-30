@@ -53,7 +53,14 @@ class SyncEngine @Inject constructor(
             }
 
             override fun onLost(network: Network) {
-                _isOnline.value = false
+                // Another network may still be active; check actual connectivity
+                // before declaring offline.
+                val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                val activeNetwork = cm.activeNetwork
+                val capabilities = activeNetwork?.let { cm.getNetworkCapabilities(it) }
+                val stillConnected = capabilities
+                    ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+                _isOnline.value = stillConnected
             }
         }
 
@@ -63,9 +70,13 @@ class SyncEngine @Inject constructor(
 
     fun stopMonitoring() {
         networkCallback?.let {
-            val connectivityManager =
-                context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            connectivityManager.unregisterNetworkCallback(it)
+            try {
+                val connectivityManager =
+                    context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                connectivityManager.unregisterNetworkCallback(it)
+            } catch (e: IllegalArgumentException) {
+                Log.w(TAG, "Network callback was not registered", e)
+            }
         }
         networkCallback = null
     }

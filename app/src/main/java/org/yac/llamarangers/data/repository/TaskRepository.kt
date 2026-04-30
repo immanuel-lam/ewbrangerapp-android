@@ -1,9 +1,11 @@
 package org.yac.llamarangers.data.repository
 
+import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
 import org.yac.llamarangers.data.local.dao.RangerTaskDao
 import org.yac.llamarangers.data.local.dao.TreatmentRecordDao
 import org.yac.llamarangers.data.local.dao.SyncQueueDao
+import org.yac.llamarangers.data.local.db.AppDatabase
 import org.yac.llamarangers.data.local.entity.RangerTaskEntity
 import org.yac.llamarangers.data.local.entity.SyncQueueEntity
 import org.yac.llamarangers.domain.model.enums.SyncStatus
@@ -13,6 +15,7 @@ import javax.inject.Singleton
 
 @Singleton
 class TaskRepository @Inject constructor(
+    private val db: AppDatabase,
     private val taskDao: RangerTaskDao,
     private val treatmentDao: TreatmentRecordDao,
     private val syncQueueDao: SyncQueueDao
@@ -56,21 +59,23 @@ class TaskRepository @Inject constructor(
             sourceTreatmentId = null
         )
 
-        taskDao.upsert(entity)
+        db.withTransaction {
+            taskDao.upsert(entity)
 
-        syncQueueDao.upsert(
-            SyncQueueEntity(
-                id = UUID.randomUUID().toString(),
-                createdAt = now,
-                entityName = "RangerTask",
-                entityId = id,
-                operationType = "create",
-                payload = null,
-                attemptCount = 0,
-                lastAttemptAt = null,
-                lastErrorMessage = null
+            syncQueueDao.upsert(
+                SyncQueueEntity(
+                    id = UUID.randomUUID().toString(),
+                    createdAt = now,
+                    entityName = "RangerTask",
+                    entityId = id,
+                    operationType = "create",
+                    payload = null,
+                    attemptCount = 0,
+                    lastAttemptAt = null,
+                    lastErrorMessage = null
+                )
             )
-        )
+        }
 
         return entity
     }
@@ -108,46 +113,50 @@ class TaskRepository @Inject constructor(
             sourceTreatmentId = treatmentId
         )
 
-        taskDao.upsert(entity)
+        db.withTransaction {
+            taskDao.upsert(entity)
 
-        syncQueueDao.upsert(
-            SyncQueueEntity(
-                id = UUID.randomUUID().toString(),
-                createdAt = now,
-                entityName = "RangerTask",
-                entityId = id,
-                operationType = "create",
-                payload = null,
-                attemptCount = 0,
-                lastAttemptAt = null,
-                lastErrorMessage = null
+            syncQueueDao.upsert(
+                SyncQueueEntity(
+                    id = UUID.randomUUID().toString(),
+                    createdAt = now,
+                    entityName = "RangerTask",
+                    entityId = id,
+                    operationType = "create",
+                    payload = null,
+                    attemptCount = 0,
+                    lastAttemptAt = null,
+                    lastErrorMessage = null
+                )
             )
-        )
+        }
 
         return entity
     }
 
     suspend fun toggleComplete(taskId: String) {
         val now = System.currentTimeMillis()
-        val task = taskDao.findById(taskId) ?: return
-        val newComplete = !task.isComplete
-        val completedAt = if (newComplete) now else null
+        db.withTransaction {
+            val task = taskDao.findById(taskId) ?: return@withTransaction
+            val newComplete = !task.isComplete
+            val completedAt = if (newComplete) now else null
 
-        taskDao.updateCompletion(taskId, newComplete, completedAt, now, SyncStatus.PENDING_UPDATE.value)
+            taskDao.updateCompletion(taskId, newComplete, completedAt, now, SyncStatus.PENDING_UPDATE.value)
 
-        syncQueueDao.upsert(
-            SyncQueueEntity(
-                id = UUID.randomUUID().toString(),
-                createdAt = now,
-                entityName = "RangerTask",
-                entityId = taskId,
-                operationType = "update",
-                payload = null,
-                attemptCount = 0,
-                lastAttemptAt = null,
-                lastErrorMessage = null
+            syncQueueDao.upsert(
+                SyncQueueEntity(
+                    id = UUID.randomUUID().toString(),
+                    createdAt = now,
+                    entityName = "RangerTask",
+                    entityId = taskId,
+                    operationType = "update",
+                    payload = null,
+                    attemptCount = 0,
+                    lastAttemptAt = null,
+                    lastErrorMessage = null
+                )
             )
-        )
+        }
     }
 
     suspend fun updateTask(
@@ -158,21 +167,23 @@ class TaskRepository @Inject constructor(
         dueDate: Long?
     ) {
         val now = System.currentTimeMillis()
-        taskDao.updateTask(taskId, title, notes, priority, dueDate, now, SyncStatus.PENDING_UPDATE.value)
+        db.withTransaction {
+            taskDao.updateTask(taskId, title, notes, priority, dueDate, now, SyncStatus.PENDING_UPDATE.value)
 
-        syncQueueDao.upsert(
-            SyncQueueEntity(
-                id = UUID.randomUUID().toString(),
-                createdAt = now,
-                entityName = "RangerTask",
-                entityId = taskId,
-                operationType = "update",
-                payload = null,
-                attemptCount = 0,
-                lastAttemptAt = null,
-                lastErrorMessage = null
+            syncQueueDao.upsert(
+                SyncQueueEntity(
+                    id = UUID.randomUUID().toString(),
+                    createdAt = now,
+                    entityName = "RangerTask",
+                    entityId = taskId,
+                    operationType = "update",
+                    payload = null,
+                    attemptCount = 0,
+                    lastAttemptAt = null,
+                    lastErrorMessage = null
+                )
             )
-        )
+        }
     }
 
     suspend fun deleteTask(taskId: String) {

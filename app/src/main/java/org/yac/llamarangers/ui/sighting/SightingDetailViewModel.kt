@@ -54,26 +54,37 @@ class SightingDetailViewModel @Inject constructor(
 
     private fun loadSighting() {
         viewModelScope.launch {
-            _sighting.value = sightingDao.findById(sightingId)
-            _isLoading.value = false
+            try {
+                _sighting.value = sightingDao.findById(sightingId)
+            } catch (_: Exception) {
+                _sighting.value = null
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 
     fun loadTreatments() {
         viewModelScope.launch {
-            _treatments.value = treatmentRepository.fetchTreatmentsForSighting(sightingId)
+            try {
+                _treatments.value = treatmentRepository.fetchTreatmentsForSighting(sightingId)
+            } catch (_: Exception) { /* keep last-known */ }
         }
     }
 
     fun loadZones() {
         viewModelScope.launch {
-            _allZones.value = zoneRepository.fetchAllZones()
+            try {
+                _allZones.value = zoneRepository.fetchAllZones()
+            } catch (_: Exception) { /* keep last-known */ }
         }
     }
 
     fun assignToZone(zoneId: String?) {
         viewModelScope.launch {
-            zoneRepository.assignSighting(sightingId, zoneId)
+            try {
+                zoneRepository.assignSighting(sightingId, zoneId)
+            } catch (_: Exception) { /* best-effort */ }
             loadSighting()
             loadZones()
         }

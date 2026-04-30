@@ -118,12 +118,17 @@ class SettingsViewModel @Inject constructor(
         _isSyncing.value = true
 
         viewModelScope.launch {
-            // Fake a realistic 2-3s sync round-trip for the demo
-            delay((2000L..3200L).random())
-            val syncPrefs = context.getSharedPreferences("sync_prefs", Context.MODE_PRIVATE)
-            syncPrefs.edit().putLong("lastSyncTimestamp", System.currentTimeMillis()).apply()
-            refreshSyncStatus()
-            _isSyncing.value = false
+            try {
+                // Fake a realistic 2-3s sync round-trip for the demo
+                delay((2000L..3200L).random())
+                val syncPrefs = context.getSharedPreferences("sync_prefs", Context.MODE_PRIVATE)
+                syncPrefs.edit().putLong("lastSyncTimestamp", System.currentTimeMillis()).apply()
+                refreshSyncStatus()
+            } catch (_: Exception) {
+                // Sync failed; user can retry
+            } finally {
+                _isSyncing.value = false
+            }
         }
     }
 

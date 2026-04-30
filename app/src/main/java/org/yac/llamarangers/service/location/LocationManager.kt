@@ -88,6 +88,10 @@ class LocationManager @Inject constructor(
     suspend fun captureLocation(): Location {
         if (!hasLocationPermission()) return portStewartFallback()
 
+        // Track best location seen during capture attempts so we can use it as
+        // a fallback if no update meets the accuracy threshold before timeout.
+        var bestEffortLocation: Location? = null
+
         val result = withTimeoutOrNull(5_000L) {
             suspendCancellableCoroutine { cont ->
                 val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1_000L)
@@ -102,7 +106,13 @@ class LocationManager @Inject constructor(
                         _currentLocation.value = location
                         _accuracyLevel.value = classifyAccuracy(location.accuracy)
 
-                        // Accept if accuracy is reasonable (< 30m)
+                        // Track best location seen so far (lowest accuracy value = most precise)
+                        val best = bestEffortLocation
+                        if (best == null || location.accuracy < best.accuracy) {
+                            bestEffortLocation = location
+                        }
+
+                        // Accept immediately if accuracy is good (< 30m)
                         if (!resumed && location.accuracy < 30f) {
                             resumed = true
                             fusedClient.removeLocationUpdates(this)
@@ -119,7 +129,8 @@ class LocationManager @Inject constructor(
             }
         }
 
-        return result ?: portStewartFallback()
+        // Prefer the accurate result, then best-effort from poor GPS, then static fallback
+        return result ?: bestEffortLocation ?: portStewartFallback()
     }
 
     private fun portStewartFallback(): Location {
@@ -132,7 +143,7 @@ class LocationManager @Inject constructor(
             time = System.currentTimeMillis()
         }
         _currentLocation.value = fallback
-        _accuracyLevel.value = AccuracyLevel.FAIR
+        _accuracyLevel.value = classifyAccuracy(fallback.accuracy)
         return fallback
     }
 

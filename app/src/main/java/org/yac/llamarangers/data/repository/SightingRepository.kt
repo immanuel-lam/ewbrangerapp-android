@@ -1,9 +1,11 @@
 package org.yac.llamarangers.data.repository
 
+import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
 import org.yac.llamarangers.data.local.dao.SightingLogDao
 import org.yac.llamarangers.data.local.dao.RangerProfileDao
 import org.yac.llamarangers.data.local.dao.SyncQueueDao
+import org.yac.llamarangers.data.local.db.AppDatabase
 import org.yac.llamarangers.data.local.entity.SightingLogEntity
 import org.yac.llamarangers.data.local.entity.SyncQueueEntity
 import org.yac.llamarangers.domain.model.enums.InfestationSize
@@ -15,6 +17,7 @@ import javax.inject.Singleton
 
 @Singleton
 class SightingRepository @Inject constructor(
+    private val db: AppDatabase,
     private val sightingDao: SightingLogDao,
     private val rangerDao: RangerProfileDao,
     private val syncQueueDao: SyncQueueDao
@@ -65,21 +68,23 @@ class SightingRepository @Inject constructor(
             infestationZoneId = null
         )
 
-        sightingDao.upsert(entity)
+        db.withTransaction {
+            sightingDao.upsert(entity)
 
-        syncQueueDao.upsert(
-            SyncQueueEntity(
-                id = UUID.randomUUID().toString(),
-                createdAt = now,
-                entityName = "SightingLog",
-                entityId = id,
-                operationType = "create",
-                payload = null,
-                attemptCount = 0,
-                lastAttemptAt = null,
-                lastErrorMessage = null
+            syncQueueDao.upsert(
+                SyncQueueEntity(
+                    id = UUID.randomUUID().toString(),
+                    createdAt = now,
+                    entityName = "SightingLog",
+                    entityId = id,
+                    operationType = "create",
+                    payload = null,
+                    attemptCount = 0,
+                    lastAttemptAt = null,
+                    lastErrorMessage = null
+                )
             )
-        )
+        }
 
         return entity
     }

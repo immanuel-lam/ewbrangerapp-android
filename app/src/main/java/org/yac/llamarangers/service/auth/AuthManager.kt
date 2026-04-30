@@ -77,9 +77,18 @@ class AuthManager @Inject constructor(
 
     private fun restoreSession() {
         val rangerIdString = secureStorage.load(SecureStorageService.Key.RANGER_ID) ?: return
+        // A stored PIN is required for a valid session; without one the session is orphaned
+        val storedPin = secureStorage.load(SecureStorageService.Key.PIN)
+        if (storedPin == null) {
+            // Corrupted state: ranger ID without a PIN -- clean up
+            secureStorage.delete(SecureStorageService.Key.RANGER_ID)
+            return
+        }
         val rangerId = try {
             UUID.fromString(rangerIdString)
         } catch (_: IllegalArgumentException) {
+            // Corrupted ranger ID -- clean up
+            secureStorage.delete(SecureStorageService.Key.RANGER_ID)
             return
         }
         _currentRangerId.value = rangerId

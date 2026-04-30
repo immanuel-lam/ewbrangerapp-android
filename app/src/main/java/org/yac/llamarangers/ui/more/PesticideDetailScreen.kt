@@ -129,9 +129,9 @@ fun PesticideDetailScreen(
         }
     }
 
-    if (showLogUsage) {
+    if (showLogUsage && stock != null) {
         LogUsageBottomSheet(
-            stock = stock!!,
+            stock = stock,
             onDismiss = { showLogUsage = false },
             onSave = { quantity, notes ->
                 viewModel.logUsage(pesticideId, quantity, notes, rangerId)

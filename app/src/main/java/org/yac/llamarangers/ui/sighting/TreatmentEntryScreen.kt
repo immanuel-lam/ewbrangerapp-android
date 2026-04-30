@@ -51,6 +51,7 @@ import org.yac.llamarangers.ui.navigation.Screen
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.filled.Add
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -78,34 +79,43 @@ class TreatmentEntryViewModel @Inject constructor(
         afterPhotoFilenames: List<String>,
         hasFollowUp: Boolean,
         followUpDate: Long,
-        onComplete: () -> Unit
+        onComplete: () -> Unit,
+        onError: () -> Unit = {}
     ) {
-        val rangerId = authManager.currentRangerId.value?.toString() ?: return
+        val rangerId = authManager.currentRangerId.value?.toString()
+        if (rangerId == null) {
+            onError()
+            return
+        }
         viewModelScope.launch {
-            var finalNotes = outcomeNotes
-            if (afterPhotoFilenames.isNotEmpty()) {
-                val prefix = "📷 After: ${afterPhotoFilenames.size} photo(s). "
-                finalNotes = prefix + outcomeNotes
-            }
-            
-            val treatment = treatmentRepository.addTreatment(
-                sightingId = sightingId,
-                method = method.value,
-                herbicideProduct = herbicideProduct.ifBlank { null },
-                outcomeNotes = finalNotes.ifBlank { null },
-                followUpDate = if (hasFollowUp) followUpDate else null,
-                rangerId = rangerId
-            )
-            // Auto-create follow-up task if needed
-            if (hasFollowUp) {
-                taskRepository.createFollowUpTask(
-                    treatmentId = treatment.id,
-                    treatmentMethod = method.displayName,
-                    followUpDate = followUpDate,
+            try {
+                var finalNotes = outcomeNotes
+                if (afterPhotoFilenames.isNotEmpty()) {
+                    val prefix = "📷 After: ${afterPhotoFilenames.size} photo(s). "
+                    finalNotes = prefix + outcomeNotes
+                }
+                
+                val treatment = treatmentRepository.addTreatment(
+                    sightingId = sightingId,
+                    method = method.value,
+                    herbicideProduct = herbicideProduct.ifBlank { null },
+                    outcomeNotes = finalNotes.ifBlank { null },
+                    followUpDate = if (hasFollowUp) followUpDate else null,
                     rangerId = rangerId
                 )
+                // Auto-create follow-up task if needed
+                if (hasFollowUp) {
+                    taskRepository.createFollowUpTask(
+                        treatmentId = treatment.id,
+                        treatmentMethod = method.displayName,
+                        followUpDate = followUpDate,
+                        rangerId = rangerId
+                    )
+                }
+                onComplete()
+            } catch (_: Exception) {
+                onError()
             }
-            onComplete()
         }
     }
 }
@@ -154,7 +164,8 @@ fun TreatmentEntryScreen(
                                 afterPhotoFilenames = afterPhotoFilenames,
                                 hasFollowUp = hasFollowUp,
                                 followUpDate = followUpDate,
-                                onComplete = onNavigateBack
+                                onComplete = onNavigateBack,
+                                onError = { isSaving = false }
                             )
                         },
                         enabled = !isSaving
@@ -269,7 +280,7 @@ fun TreatmentEntryScreen(
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier
-                                    .background(MaterialTheme.colorScheme.primaryContainer, shape = androidx.compose.foundation.shape.CircleShape)
+                                    .background(MaterialTheme.colorScheme.primaryContainer, shape = CircleShape)
                                     .padding(horizontal = 8.dp, vertical = 4.dp)
                             )
                         }

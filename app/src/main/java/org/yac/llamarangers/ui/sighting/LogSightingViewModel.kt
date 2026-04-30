@@ -132,7 +132,11 @@ class LogSightingViewModel @Inject constructor(
         if (!canSave.value) return
         val location = _capturedLocation.value ?: return
         val species = _selectedSpecies.value ?: return
-        val rangerId = authManager.currentRangerId.value?.toString() ?: return
+        val rangerId = authManager.currentRangerId.value?.toString()
+        if (rangerId == null) {
+            _saveError.value = "Not authenticated. Please log in again."
+            return
+        }
 
         _isSaving.value = true
         _saveError.value = null

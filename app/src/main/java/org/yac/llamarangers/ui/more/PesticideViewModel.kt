@@ -36,22 +36,30 @@ class PesticideViewModel @Inject constructor(
 
     fun load() {
         viewModelScope.launch {
-            val allStocks = pesticideRepository.fetchAllStocks()
-            _stocks.value = allStocks
-            _lowStockItems.value = allStocks.filter { it.currentQuantity <= it.minThreshold }
+            try {
+                val allStocks = pesticideRepository.fetchAllStocks()
+                _stocks.value = allStocks
+                _lowStockItems.value = allStocks.filter { it.currentQuantity <= it.minThreshold }
+            } catch (_: Exception) {
+                // Keep last-known state
+            }
         }
     }
 
     fun addStock(productName: String, unit: String, initialQuantity: Double, minThreshold: Double) {
         viewModelScope.launch {
-            pesticideRepository.addStock(productName, unit, initialQuantity, minThreshold)
+            try {
+                pesticideRepository.addStock(productName, unit, initialQuantity, minThreshold)
+            } catch (_: Exception) { /* best-effort */ }
             load()
         }
     }
 
     fun logUsage(stockId: String, quantity: Double, notes: String?, rangerId: String) {
         viewModelScope.launch {
-            pesticideRepository.logUsage(stockId, quantity, notes, rangerId)
+            try {
+                pesticideRepository.logUsage(stockId, quantity, notes, rangerId)
+            } catch (_: Exception) { /* best-effort */ }
             load()
             loadUsageHistory(stockId)
         }
@@ -59,7 +67,11 @@ class PesticideViewModel @Inject constructor(
 
     fun loadUsageHistory(stockId: String) {
         viewModelScope.launch {
-            _usageHistory.value = pesticideRepository.fetchUsageHistory(stockId)
+            try {
+                _usageHistory.value = pesticideRepository.fetchUsageHistory(stockId)
+            } catch (_: Exception) {
+                // Keep last-known state
+            }
         }
     }
 }

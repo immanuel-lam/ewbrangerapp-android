@@ -90,6 +90,11 @@ class DashboardViewModel @Inject constructor(
 
     fun load() {
         viewModelScope.launch {
+            try { loadInternal() } catch (_: Exception) { /* dashboard stays at last-known state */ }
+        }
+    }
+
+    private suspend fun loadInternal() {
             _currentRanger.value = rangerDao.fetchCurrentDevice()
             val now = System.currentTimeMillis()
             val calendar = Calendar.getInstance()
@@ -141,7 +146,6 @@ class DashboardViewModel @Inject constructor(
             // Open follow-up tasks (incomplete tasks with a sourceTreatmentId)
             val incompleteTasks = taskDao.fetchIncomplete()
             _openFollowUpTasks.value = incompleteTasks.count { it.sourceTreatmentId != null }
-        }
     }
 
     private suspend fun buildMonthlySightingData(now: Long) {

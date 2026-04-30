@@ -1,8 +1,10 @@
 package org.yac.llamarangers.data.repository
 
+import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
 import org.yac.llamarangers.data.local.dao.RangerProfileDao
 import org.yac.llamarangers.data.local.dao.SyncQueueDao
+import org.yac.llamarangers.data.local.db.AppDatabase
 import org.yac.llamarangers.data.local.entity.RangerProfileEntity
 import org.yac.llamarangers.data.local.entity.SyncQueueEntity
 import org.yac.llamarangers.domain.model.enums.RangerRole
@@ -13,6 +15,7 @@ import javax.inject.Singleton
 
 @Singleton
 class RangerRepository @Inject constructor(
+    private val db: AppDatabase,
     private val rangerDao: RangerProfileDao,
     private val syncQueueDao: SyncQueueDao
 ) {
@@ -46,21 +49,23 @@ class RangerRepository @Inject constructor(
             syncStatus = SyncStatus.PENDING_CREATE.value
         )
 
-        rangerDao.upsert(entity)
+        db.withTransaction {
+            rangerDao.upsert(entity)
 
-        syncQueueDao.upsert(
-            SyncQueueEntity(
-                id = UUID.randomUUID().toString(),
-                createdAt = now,
-                entityName = "RangerProfile",
-                entityId = id,
-                operationType = "create",
-                payload = null,
-                attemptCount = 0,
-                lastAttemptAt = null,
-                lastErrorMessage = null
+            syncQueueDao.upsert(
+                SyncQueueEntity(
+                    id = UUID.randomUUID().toString(),
+                    createdAt = now,
+                    entityName = "RangerProfile",
+                    entityId = id,
+                    operationType = "create",
+                    payload = null,
+                    attemptCount = 0,
+                    lastAttemptAt = null,
+                    lastErrorMessage = null
+                )
             )
-        )
+        }
 
         return entity
     }
@@ -70,7 +75,9 @@ class RangerRepository @Inject constructor(
      * Clears the flag on all other rangers first.
      */
     suspend fun setCurrentDevice(rangerId: String) {
-        rangerDao.clearAllCurrentDevice()
-        rangerDao.setCurrentDevice(rangerId, true)
+        db.withTransaction {
+            rangerDao.clearAllCurrentDevice()
+            rangerDao.setCurrentDevice(rangerId, true)
+        }
     }
 }
