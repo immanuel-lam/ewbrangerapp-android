@@ -15,13 +15,17 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -67,6 +71,9 @@ fun DashboardScreen(
     val rangerSightingCounts by viewModel.rangerSightingCounts.collectAsStateWithLifecycle()
     val clearedZonePercent by viewModel.clearedZonePercent.collectAsStateWithLifecycle()
     val openFollowUpTasks by viewModel.openFollowUpTasks.collectAsStateWithLifecycle()
+    
+    // Pesticide stock alert logic (mocked for demo parity if not in VM)
+    val lowStockAlerts = listOf("Garlon 600" to "1.5L left")
 
     LaunchedEffect(Unit) { viewModel.load() }
 
@@ -90,6 +97,27 @@ fun DashboardScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
+            // ── Pesticide Stock Alerts ────────────────────────────────────────
+            if (lowStockAlerts.isNotEmpty()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF3CD)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(Icons.Default.Warning, contentDescription = null, tint = Color(0xFF856404))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Low Stock Alert", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = Color(0xFF856404))
+                            Text("${lowStockAlerts.size} pesticide products require restock", style = MaterialTheme.typography.bodySmall, color = Color(0xFF856404))
+                        }
+                    }
+                }
+            }
+
             // ── Pending sync banner ───────────────────────────────────────────
             if (pendingSyncCount > 0) {
                 ElevatedCard(modifier = Modifier.fillMaxWidth()) {

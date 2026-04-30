@@ -1,8 +1,12 @@
 package org.yac.llamarangers.ui.navigation
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -11,8 +15,17 @@ import androidx.navigation.navArgument
 import org.yac.llamarangers.data.repository.ZoneRepository
 import org.yac.llamarangers.service.auth.AuthManager
 import org.yac.llamarangers.ui.app.MainTabScreen
+import org.yac.llamarangers.ui.equipment.EquipmentListScreen
+import org.yac.llamarangers.ui.guide.SpeciesDetailScreen
+import org.yac.llamarangers.ui.guide.SpeciesGuideScreen
+import org.yac.llamarangers.ui.hazard.HazardLogScreen
+import org.yac.llamarangers.ui.hazard.LogHazardScreen
+import org.yac.llamarangers.ui.hub.ConflictResolverScreen
+import org.yac.llamarangers.ui.hub.DemoLiveSyncScreen
+import org.yac.llamarangers.ui.hub.ShiftHandoverScreen
 import org.yac.llamarangers.ui.login.LoginScreen
 import org.yac.llamarangers.ui.map.AddZoneScreen
+import org.yac.llamarangers.ui.map.BloomCalendarScreen
 import org.yac.llamarangers.ui.map.ZoneDetailScreen
 import org.yac.llamarangers.ui.map.ZoneListScreen
 import org.yac.llamarangers.ui.more.ControlProtocolScreen
@@ -21,11 +34,10 @@ import org.yac.llamarangers.ui.more.MeshSyncScreen
 import org.yac.llamarangers.ui.more.PesticideDetailScreen
 import org.yac.llamarangers.ui.more.PesticideListScreen
 import org.yac.llamarangers.ui.more.SettingsScreen
-import org.yac.llamarangers.ui.more.VariantDetailScreen
-import org.yac.llamarangers.ui.more.VariantGuideScreen
 import org.yac.llamarangers.ui.sighting.LogSightingScreen
 import org.yac.llamarangers.ui.sighting.SightingDetailScreen
 import org.yac.llamarangers.ui.sighting.TreatmentEntryScreen
+import org.yac.llamarangers.ui.sighting.TreatmentFollowUpScreen
 import org.yac.llamarangers.ui.tasks.AddTaskScreen
 
 @Composable
@@ -55,14 +67,17 @@ fun AppNavigation(
                 onNavigateToAddZone = { navController.navigate(Screen.AddZone.route) },
                 onNavigateToZoneList = { navController.navigate(Screen.ZoneList.route) },
                 onNavigateToZoneDetail = { id -> navController.navigate(Screen.ZoneDetail(id).route) },
-                onNavigateToVariantGuide = { navController.navigate(Screen.VariantGuide.route) },
-                onNavigateToControlProtocol = { navController.navigate(Screen.ControlProtocol.route) },
+                onNavigateToSpeciesDetail = { v -> navController.navigate(Screen.SpeciesDetail(v).route) },
                 onNavigateToDashboard = { navController.navigate(Screen.Dashboard.route) },
                 onNavigateToPesticideList = { navController.navigate(Screen.PesticideList.route) },
                 onNavigateToMeshSync = { navController.navigate(Screen.MeshSync.route) },
+                onNavigateToCloudSync = { navController.navigate(Screen.CloudSync.route) },
+                onNavigateToShiftHandover = { navController.navigate(Screen.ShiftHandover.route) },
+                onNavigateToEquipment = { navController.navigate(Screen.EquipmentList.route) },
+                onNavigateToHazards = { navController.navigate(Screen.HazardLog.route) },
                 onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
-                onNavigateToTreatmentEntry = { id -> navController.navigate(Screen.TreatmentEntry(id).route) },
-                onNavigateToAddTask = { navController.navigate(Screen.AddTask.route) }
+                onNavigateToAddTask = { navController.navigate(Screen.AddTask.route) },
+                onLogout = { authManager.logout() }
             )
         }
 
@@ -77,7 +92,8 @@ fun AppNavigation(
         ) {
             SightingDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToTreatmentEntry = { id -> navController.navigate(Screen.TreatmentEntry(id).route) }
+                onNavigateToTreatmentEntry = { id -> navController.navigate(Screen.TreatmentEntry(id).route) },
+                onNavigateToTreatmentFollowUp = { id -> navController.navigate(Screen.TreatmentFollowUp(id).route) }
             )
         }
 
@@ -86,6 +102,13 @@ fun AppNavigation(
             arguments = listOf(navArgument(Screen.TreatmentEntry.ARG_SIGHTING_ID) { type = NavType.StringType })
         ) {
             TreatmentEntryScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(
+            route = Screen.TreatmentFollowUp.ROUTE,
+            arguments = listOf(navArgument(Screen.TreatmentFollowUp.ARG_TREATMENT_ID) { type = NavType.StringType })
+        ) {
+            TreatmentFollowUpScreen(onNavigateBack = { navController.popBackStack() })
         }
 
         // Task flow
@@ -120,7 +143,7 @@ fun AppNavigation(
             )
         }
 
-        // More section
+        // Hub Destinations
         composable(Screen.Dashboard.route) {
             DashboardScreen(onNavigateBack = { navController.popBackStack() })
         }
@@ -147,33 +170,103 @@ fun AppNavigation(
         }
 
         composable(Screen.MeshSync.route) {
-            MeshSyncScreen(onNavigateBack = { navController.popBackStack() })
+            MeshSyncScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToRangerStatus = { navController.navigate(Screen.RangerStatus.route) }
+            )
+        }
+
+        composable(Screen.CloudSync.route) {
+            DemoLiveSyncScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.ShiftHandover.route) {
+            ShiftHandoverScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.ConflictResolver.route) {
+            ConflictResolverScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.RangerStatus.route) {
+            org.yac.llamarangers.ui.mesh.RangerStatusScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.BloomCalendar.route) {
+            BloomCalendarScreen(onNavigateBack = { navController.popBackStack() })
         }
 
         composable(Screen.Settings.route) {
             SettingsScreen(onNavigateBack = { navController.popBackStack() })
         }
 
-        composable(Screen.VariantGuide.route) {
-            VariantGuideScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToDetail = { v -> navController.navigate(Screen.VariantDetail(v).route) }
-            )
-        }
-
         composable(
-            route = Screen.VariantDetail.ROUTE,
-            arguments = listOf(navArgument(Screen.VariantDetail.ARG_VARIANT_VALUE) { type = NavType.StringType })
+            route = Screen.SpeciesDetail.ROUTE,
+            arguments = listOf(navArgument(Screen.SpeciesDetail.ARG_SPECIES_VALUE) { type = NavType.StringType })
         ) { backStackEntry ->
-            val variantValue = backStackEntry.arguments?.getString(Screen.VariantDetail.ARG_VARIANT_VALUE) ?: ""
-            VariantDetailScreen(
-                variantValue = variantValue,
+            val speciesValue = backStackEntry.arguments?.getString(Screen.SpeciesDetail.ARG_SPECIES_VALUE) ?: ""
+            SpeciesDetailScreen(
+                speciesValue = speciesValue,
                 onNavigateBack = { navController.popBackStack() }
             )
         }
 
         composable(Screen.ControlProtocol.route) {
             ControlProtocolScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.EquipmentList.route) {
+            EquipmentListScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToAddEquipment = { navController.navigate(Screen.AddEquipment.route) }
+            )
+        }
+
+        composable(Screen.AddEquipment.route) {
+            org.yac.llamarangers.ui.equipment.AddEquipmentScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.HazardLog.route) {
+            HazardLogScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToLogHazard = { navController.navigate(Screen.LogHazard.route) }
+            )
+        }
+        
+        composable(Screen.LogHazard.route) {
+            LogHazardScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PlaceholderScreen(title: String, onNavigateBack: () -> Unit) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(title) },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        Box(
+            modifier = Modifier.fillMaxSize().padding(padding),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Coming Soon",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

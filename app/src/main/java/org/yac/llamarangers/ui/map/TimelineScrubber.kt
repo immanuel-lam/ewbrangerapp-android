@@ -42,6 +42,9 @@ fun TimelineScrubber(
     val startLabel = dateFormat.format(Date(range.first))
     val endLabel = dateFormat.format(Date(range.second))
 
+    val rangeSize = (range.second - range.first).toFloat()
+    val normalizedValue = if (rangeSize > 0f) ((date - range.first).toFloat() / rangeSize).coerceIn(0f, 1f) else 0f
+
     Card(
         modifier = modifier,
         shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
@@ -65,9 +68,11 @@ fun TimelineScrubber(
             Spacer(modifier = Modifier.width(4.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Slider(
-                    value = date.toFloat(),
-                    onValueChange = { onDateChange(it.toLong()) },
-                    valueRange = range.first.toFloat()..range.second.toFloat(),
+                    value = normalizedValue,
+                    onValueChange = { fraction ->
+                        onDateChange(range.first + (fraction * rangeSize).toLong())
+                    },
+                    valueRange = 0f..1f,
                     modifier = Modifier.fillMaxWidth()
                 )
                 Row(modifier = Modifier.fillMaxWidth()) {

@@ -7,7 +7,7 @@ import org.yac.llamarangers.data.local.dao.SyncQueueDao
 import org.yac.llamarangers.data.local.entity.SightingLogEntity
 import org.yac.llamarangers.data.local.entity.SyncQueueEntity
 import org.yac.llamarangers.domain.model.enums.InfestationSize
-import org.yac.llamarangers.domain.model.enums.LantanaVariant
+import org.yac.llamarangers.domain.model.enums.InvasiveSpecies
 import org.yac.llamarangers.domain.model.enums.SyncStatus
 import java.util.UUID
 import javax.inject.Inject
@@ -33,12 +33,14 @@ class SightingRepository @Inject constructor(
         latitude: Double,
         longitude: Double,
         horizontalAccuracy: Double,
-        variant: LantanaVariant,
+        variant: InvasiveSpecies,
         infestationSize: InfestationSize,
         notes: String?,
         photoFilenames: List<String>,
         rangerId: String,
-        deviceId: String
+        deviceId: String,
+        infestationAreaEstimate: String? = null,
+        voiceNotePath: String? = null
     ): SightingLogEntity {
         val now = System.currentTimeMillis()
         val id = UUID.randomUUID().toString()
@@ -52,10 +54,12 @@ class SightingRepository @Inject constructor(
             horizontalAccuracy = horizontalAccuracy,
             variant = variant.value,
             infestationSize = infestationSize.value,
+            infestationAreaEstimate = infestationAreaEstimate,
             notes = notes,
             photoFilenames = photoFilenames,
             deviceId = deviceId,
             serverId = null,
+            voiceNotePath = voiceNotePath,
             syncStatus = SyncStatus.PENDING_CREATE.value,
             rangerId = rangerId,
             infestationZoneId = null

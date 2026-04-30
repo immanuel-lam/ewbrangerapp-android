@@ -12,7 +12,8 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.*
+import androidx.compose.ui.graphics.*
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -73,7 +74,7 @@ import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polygon
 import org.osmdroid.views.overlay.Polyline
 import org.yac.llamarangers.data.local.entity.InfestationZoneEntity
-import org.yac.llamarangers.domain.model.enums.LantanaVariant
+import org.yac.llamarangers.domain.model.enums.InvasiveSpecies
 import org.yac.llamarangers.ui.theme.RangerGreen
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -115,6 +116,7 @@ fun MapScreen(
     var showTimeline by remember { mutableStateOf(false) }
     var showFabMenu by remember { mutableStateOf(false) }
     var showMapTypeMenu by remember { mutableStateOf(false) }
+    var showBloomCalendar by remember { mutableStateOf(false) }
     var actionCardData by remember { mutableStateOf<MapActionCardData?>(null) }
 
     // Configure osmdroid
@@ -222,9 +224,11 @@ fun MapScreen(
                 }
 
                 // --- Sighting markers ---
-                if (showSightings) {
-                    viewModel.filteredSightings.forEach { sighting ->
-                        val variant = LantanaVariant.fromValue(sighting.variant)
+                val visibleSightings = if (showSightings) {
+                    sightings.filter { it.createdAt <= timelineDate }
+                } else emptyList()
+                visibleSightings.forEach { sighting ->
+                        val variant = InvasiveSpecies.fromValue(sighting.variant)
                         val marker = Marker(mapView).apply {
                             position = GeoPoint(sighting.latitude, sighting.longitude)
                             title = variant.displayName
@@ -267,7 +271,6 @@ fun MapScreen(
                         }
                         mapView.overlays.add(marker)
                     }
-                }
 
                 // --- Patrol markers ---
                 if (showPatrols) {
@@ -348,51 +351,72 @@ fun MapScreen(
 
         // --- UI Overlays (only when NOT drawing) ---
         if (!isDrawing) {
-            // Top-left: map type picker
-            Box(
+            // Top overlay row
+            Row(
                 modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(start = 16.dp, top = 8.dp)
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f))
-                        .clickable { showMapTypeMenu = true }
-                        .padding(horizontal = 10.dp, vertical = 7.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                // Bloom calendar button
+                Button(
+                    onClick = { showBloomCalendar = true },
+                    modifier = Modifier.padding(end = 8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = RangerGreen)
                 ) {
                     Icon(
-                        Icons.Default.Map,
-                        contentDescription = "Map Type",
+                        Icons.Default.Map, // Closest to leaf.fill
+                        contentDescription = "Bloom",
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = when (mapType) {
-                            MapViewModel.MapType.SATELLITE -> "Satellite"
-                            MapViewModel.MapType.HYBRID -> "Hybrid"
-                            MapViewModel.MapType.STANDARD -> "Standard"
-                        },
-                        style = MaterialTheme.typography.labelMedium
-                    )
+                    Text("Bloom", style = MaterialTheme.typography.labelMedium)
                 }
-                DropdownMenu(
-                    expanded = showMapTypeMenu,
-                    onDismissRequest = { showMapTypeMenu = false }
-                ) {
-                    MapViewModel.MapType.entries.forEach { type ->
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    type.name.lowercase()
-                                        .replaceFirstChar { it.uppercase() })
-                            },
-                            onClick = {
-                                viewModel.setMapType(type)
-                                showMapTypeMenu = false
-                            }
+
+                // Map type picker
+                Box {
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f))
+                            .clickable { showMapTypeMenu = true }
+                            .padding(horizontal = 10.dp, vertical = 7.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.Map,
+                            contentDescription = "Map Type",
+                            modifier = Modifier.size(16.dp)
                         )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = when (mapType) {
+                                MapViewModel.MapType.SATELLITE -> "Satellite"
+                                MapViewModel.MapType.HYBRID -> "Hybrid"
+                                MapViewModel.MapType.STANDARD -> "Standard"
+                            },
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = showMapTypeMenu,
+                        onDismissRequest = { showMapTypeMenu = false }
+                    ) {
+                        MapViewModel.MapType.entries.forEach { type ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        type.name.lowercase()
+                                            .replaceFirstChar { it.uppercase() })
+                                },
+                                onClick = {
+                                    viewModel.setMapType(type)
+                                    showMapTypeMenu = false
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -653,7 +677,7 @@ private fun ZonePickerBottomSheet(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         // Color dot for dominant variant
-                        val variant = LantanaVariant.fromValue(zone.dominantVariant ?: "")
+                        val variant = InvasiveSpecies.fromValue(zone.dominantVariant ?: "")
                         Box(
                             modifier = Modifier
                                 .size(12.dp)

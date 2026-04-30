@@ -9,7 +9,7 @@ import org.yac.llamarangers.data.local.entity.InfestationZoneEntity
 import org.yac.llamarangers.data.local.entity.InfestationZoneSnapshotEntity
 import org.yac.llamarangers.data.local.entity.SightingLogEntity
 import org.yac.llamarangers.data.local.entity.SyncQueueEntity
-import org.yac.llamarangers.domain.model.enums.LantanaVariant
+import org.yac.llamarangers.domain.model.enums.InvasiveSpecies
 import org.yac.llamarangers.domain.model.enums.SyncStatus
 import java.util.UUID
 import javax.inject.Inject
@@ -31,7 +31,7 @@ class ZoneRepository @Inject constructor(
 
     suspend fun createZone(
         name: String?,
-        dominantVariant: LantanaVariant
+        dominantVariant: InvasiveSpecies
     ): InfestationZoneEntity {
         val now = System.currentTimeMillis()
         val id = UUID.randomUUID().toString()
@@ -68,7 +68,7 @@ class ZoneRepository @Inject constructor(
     suspend fun updateZone(
         zoneId: String,
         name: String?,
-        dominantVariant: LantanaVariant,
+        dominantVariant: InvasiveSpecies,
         status: String
     ) {
         val now = System.currentTimeMillis()

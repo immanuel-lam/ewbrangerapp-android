@@ -15,7 +15,7 @@ import org.yac.llamarangers.data.local.dao.RangerTaskDao
 import org.yac.llamarangers.data.local.dao.SightingLogDao
 import org.yac.llamarangers.data.local.dao.SyncQueueDao
 import org.yac.llamarangers.data.local.dao.TreatmentRecordDao
-import org.yac.llamarangers.domain.model.enums.LantanaVariant
+import org.yac.llamarangers.domain.model.enums.InvasiveSpecies
 import java.util.Calendar
 import javax.inject.Inject
 
@@ -81,12 +81,16 @@ class DashboardViewModel @Inject constructor(
     private val _openFollowUpTasks = MutableStateFlow(0)
     val openFollowUpTasks: StateFlow<Int> = _openFollowUpTasks.asStateFlow()
 
+    private val _currentRanger = MutableStateFlow<org.yac.llamarangers.data.local.entity.RangerProfileEntity?>(null)
+    val currentRanger: StateFlow<org.yac.llamarangers.data.local.entity.RangerProfileEntity?> = _currentRanger.asStateFlow()
+
     init {
         load()
     }
 
     fun load() {
         viewModelScope.launch {
+            _currentRanger.value = rangerDao.fetchCurrentDevice()
             val now = System.currentTimeMillis()
             val calendar = Calendar.getInstance()
             calendar.set(Calendar.DAY_OF_MONTH, 1)
@@ -163,7 +167,7 @@ class DashboardViewModel @Inject constructor(
             val byVariant = monthSightings.groupBy { it.variant }
             for ((variant, sightings) in byVariant) {
                 val label = try {
-                    LantanaVariant.fromValue(variant).displayName
+                    InvasiveSpecies.fromValue(variant).displayName
                 } catch (_: Exception) {
                     variant.replaceFirstChar { it.uppercase() }
                 }

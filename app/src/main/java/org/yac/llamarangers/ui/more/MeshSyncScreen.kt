@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CellTower
 import androidx.compose.material.icons.filled.CheckCircle
@@ -53,6 +55,7 @@ import org.yac.llamarangers.ui.theme.RangerGreen
 @Composable
 fun MeshSyncScreen(
     onNavigateBack: () -> Unit = {},
+    onNavigateToRangerStatus: () -> Unit = {},
     viewModel: MeshSyncViewModel = hiltViewModel()
 ) {
     val phase by viewModel.phase.collectAsStateWithLifecycle()
@@ -167,35 +170,48 @@ fun MeshSyncScreen(
             }
 
             // ── Buttons ───────────────────────────────────────────────────────
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                if (phase == SyncPhase.IDLE || phase == SyncPhase.DONE) {
-                    Button(
-                        onClick = { viewModel.onButtonTap() },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (phase == SyncPhase.DONE) RangerGreen
-                            else MaterialTheme.colorScheme.primary
-                        )
-                    ) {
-                        Text(viewModel.buttonTitle)
-                    }
-                } else {
-                    // Discovering or Syncing: show disabled Start + active Stop
-                    Button(
-                        onClick = {},
-                        modifier = Modifier.weight(1f),
-                        enabled = false
-                    ) {
-                        Text(viewModel.buttonTitle)
-                    }
-                    OutlinedButton(
-                        onClick = { /* stop not wired in demo */ },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Stop")
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Button(
+                    onClick = onNavigateToRangerStatus,
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(Icons.Default.CellTower, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Broadcast My Status", fontWeight = FontWeight.SemiBold)
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    if (phase == SyncPhase.IDLE || phase == SyncPhase.DONE) {
+                        Button(
+                            onClick = { viewModel.onButtonTap() },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (phase == SyncPhase.DONE) RangerGreen
+                                else MaterialTheme.colorScheme.primary
+                            )
+                        ) {
+                            Text(viewModel.buttonTitle)
+                        }
+                    } else {
+                        // Discovering or Syncing: show disabled Start + active Stop
+                        Button(
+                            onClick = {},
+                            modifier = Modifier.weight(1f),
+                            enabled = false
+                        ) {
+                            Text(viewModel.buttonTitle)
+                        }
+                        OutlinedButton(
+                            onClick = { /* stop not wired in demo */ },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Stop")
+                        }
                     }
                 }
             }

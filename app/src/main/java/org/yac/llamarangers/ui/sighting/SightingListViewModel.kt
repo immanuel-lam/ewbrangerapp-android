@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 import org.yac.llamarangers.data.local.entity.SightingLogEntity
 import org.yac.llamarangers.data.repository.RangerRepository
 import org.yac.llamarangers.data.repository.SightingRepository
-import org.yac.llamarangers.domain.model.enums.LantanaVariant
+import org.yac.llamarangers.domain.model.enums.InvasiveSpecies
 import org.yac.llamarangers.service.location.LocationManager
 import javax.inject.Inject
 
@@ -36,8 +36,8 @@ class SightingListViewModel @Inject constructor(
     private val _searchText = MutableStateFlow("")
     val searchText: StateFlow<String> = _searchText.asStateFlow()
 
-    private val _filterVariant = MutableStateFlow<LantanaVariant?>(null)
-    val filterVariant: StateFlow<LantanaVariant?> = _filterVariant.asStateFlow()
+    private val _filterVariant = MutableStateFlow<InvasiveSpecies?>(null)
+    val filterVariant: StateFlow<InvasiveSpecies?> = _filterVariant.asStateFlow()
 
     /** Map of ranger ID -> display name, used by SightingRow to show who logged each sighting. */
     private val _rangerNames = MutableStateFlow<Map<String, String>>(emptyMap())
@@ -60,7 +60,7 @@ class SightingListViewModel @Inject constructor(
         _searchText.value = text
     }
 
-    fun setFilterVariant(variant: LantanaVariant?) {
+    fun setFilterVariant(variant: InvasiveSpecies?) {
         _filterVariant.value = variant
     }
 

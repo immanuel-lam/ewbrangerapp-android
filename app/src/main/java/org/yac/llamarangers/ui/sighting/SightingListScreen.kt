@@ -3,7 +3,8 @@ package org.yac.llamarangers.ui.sighting
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.*
+import androidx.compose.ui.graphics.*
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -45,7 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.yac.llamarangers.data.local.entity.SightingLogEntity
 import org.yac.llamarangers.domain.model.enums.InfestationSize
-import org.yac.llamarangers.domain.model.enums.LantanaVariant
+import org.yac.llamarangers.domain.model.enums.InvasiveSpecies
 import org.yac.llamarangers.domain.model.enums.SyncStatus
 import org.yac.llamarangers.ui.components.SyncStatusBadge
 import org.yac.llamarangers.ui.components.VariantColourDot
@@ -172,7 +173,7 @@ private fun SightingRow(
     rangerName: String?,
     onClick: () -> Unit
 ) {
-    val variant = LantanaVariant.fromValue(sighting.variant)
+    val variant = InvasiveSpecies.fromValue(sighting.variant)
 
     Row(
         modifier = Modifier

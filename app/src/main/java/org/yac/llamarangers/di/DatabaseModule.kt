@@ -46,4 +46,9 @@ object DatabaseModule {
     @Provides fun providePesticideStockDao(db: AppDatabase): PesticideStockDao = db.pesticideStockDao()
     @Provides fun providePesticideUsageRecordDao(db: AppDatabase): PesticideUsageRecordDao = db.pesticideUsageRecordDao()
     @Provides fun provideSyncQueueDao(db: AppDatabase): SyncQueueDao = db.syncQueueDao()
+    @Provides fun provideEquipmentDao(db: AppDatabase): org.yac.llamarangers.data.local.dao.EquipmentDao = db.equipmentDao()
+    @Provides fun provideHazardLogDao(db: AppDatabase): org.yac.llamarangers.data.local.dao.HazardLogDao = db.hazardLogDao()
+    @Provides fun provideMaintenanceRecordDao(db: AppDatabase): org.yac.llamarangers.data.local.dao.MaintenanceRecordDao = db.maintenanceRecordDao()
+    @Provides fun provideSafetyCheckInDao(db: AppDatabase): org.yac.llamarangers.data.local.dao.SafetyCheckInDao = db.safetyCheckInDao()
+    @Provides fun provideTreatmentFollowUpDao(db: AppDatabase): org.yac.llamarangers.data.local.dao.TreatmentFollowUpDao = db.treatmentFollowUpDao()
 }

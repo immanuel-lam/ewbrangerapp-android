@@ -1,66 +1,44 @@
-# Lama Lama Rangers — Lantana Control Field App (Android)
+# Lama Lama Rangers — Invasive Species Control Field App (Android)
 
 An Android field application built for the Lama Lama Rangers of Yintjingga Aboriginal Corporation (YAC), Cape York Peninsula, Queensland. Built as part of **31265 Communications for IT Professionals — EWB Challenge 2026**.
 
-> This is a direct port of the [iOS app](https://github.com/username11384/ewbrangerapp) to Android, maintaining feature parity across both platforms.
+> This is a strict 1:1 port of the [iOS app (v3)](https://github.com/username11384/ewbrangerapp) to Android, maintaining feature parity, demo data, and fake syncing workflows.
 
 ---
 
 ## Overview
 
-Lantana camara is one of the most invasive weeds in Australia. This app gives Lama Lama Rangers the tools to log sightings, coordinate treatment, track patrol coverage, and sync records across the team — all without a reliable internet connection.
+Invasive weed management is critical for the health of Lama Lama Country. This app provides rangers with tools to log sightings of multiple invasive species, coordinate treatment, track patrol coverage, manage equipment, and sync records across the team — all designed for remote field conditions without internet.
 
 ---
 
-## Features
+## Features (V2 & V3 Parity)
 
-### Map
-- Satellite and standard map views centred on Port Stewart (osmdroid)
-- Sighting pins colour-coded by Lantana variant
-- Infestation zone polygons with status overlays (active / under treatment / cleared)
-- Patrol area markers
-- Layer toggles for sightings, zones, and patrols
-- Draw mode for capturing new zone boundaries
+### Map & Multi-Species
+- **6 Invasive Species:** Support for Lantana, Rubber Vine, Prickly Acacia, Sicklepod, Giant Rat's Tail Grass, and Pond Apple.
+- **Bloom Calendar:** Seasonal risk visualizer showing peak flowering/seeding months for all species.
+- **Dynamic Map:** Satellite and standard views (osmdroid) with color-coded sighting pins and zone polygons.
+- **Zone Overlays:** Real-time status (Active, Under Treatment, Cleared) with draw-mode for new boundaries.
 
-### Sighting Log
-- Log new sightings with GPS capture, variant picker, infestation size, and up to 3 photos
-- Full sighting history with ranger name, relative timestamp, and sync status
-- Sighting detail with linked treatment records
-- Swipe to delete
+### Field Records (V3 Enhanced)
+- **Sighting Log:** Capture GPS, species type, infestation size estimate (m²), voice notes, and before/after photos.
+- **Safety Check-In:** Periodic timer-based check-in system with SOS alerts for lone ranger safety.
+- **Hazard Logger:** Log field hazards (wasps, snakes, flood damage) with GPS and photo documentation.
+- **Treatment Records:** Track herbicide products, mechanical removal, stem injection, or fire management with outcome notes.
+- **Before/After Comparison:** Visual comparison cards in sighting details to track treatment effectiveness.
 
-### Treatment Records
-- Log treatment method (cut stump, splat gun, foliar spray, basal bark), herbicide product, outcome notes, and optional follow-up date
-- Treatment history linked to individual sightings
+### Hub & Operations
+- **Hub Tab:** Central tile-grid for operational workflows (Dashboard, Day Sync, Zones, Cloud Sync).
+- **Shift Handover:** Generate and share end-of-shift reports summarizing field activity and species breakdown.
+- **Cloud Sync Demo:** Simulated live-sync dashboard demonstrating Supabase and S3 integration.
+- **Conflict Resolver:** Interactive UI to resolve zone boundary conflicts during peer-to-peer sync.
+- **Equipment Log:** Track gear maintenance, service history, and next maintenance due dates.
 
-### Patrol
-- Start a patrol with a checklist of pre-departure tasks
-- Record patrol area, duration, and notes
-- Calendar and list views of past patrols
-
-### Variant Guide
-- Reference cards for all six Lantana camara variants found in the region
-- Identifying features, recommended control methods with instructions, and seasonal notes
-- Biocontrol warning banner for pink Lantana during the wet season (Nov–Mar)
-
-### Pesticide Inventory
-- Track stock levels for herbicide products
-- Log usage against treatment records
-- Low-stock alerts when quantity falls below threshold
-
-### Tasks
-- Assign follow-up tasks with priority levels and due dates
-- Filter by priority; swipe to delete
-- Overdue task banner
-
-### Mesh Sync (End of Day Sync)
-- Peer-to-peer Bluetooth/WiFi sync between ranger devices via Google Nearby Connections
-- No internet required — designed for remote field conditions
-
-### Dashboard
-- Sightings and treatment statistics
-- Zone status breakdown
-- Open follow-up tasks
-- Sightings by ranger
+### Management & Guidance
+- **Species Guide:** Full identification guide with distinguishing features and recommended control methods.
+- **Pesticide Inventory:** Low-stock alerts and usage tracking against treatment records.
+- **Tasks:** Assign follow-up tasks (e.g., regrowth checks) with priority-based filtering.
+- **Patrol Checklists:** Per-area safety and gear checklists before starting a patrol.
 
 ---
 
@@ -70,34 +48,29 @@ Lantana camara is one of the most invasive weeds in Australia. This app gives La
 app/src/main/java/org/yac/llamarangers/
 ├── data/
 │   ├── local/
-│   │   ├── AppDatabase.kt          # Room database + TypeConverters
-│   │   ├── dao/                    # DAO interfaces per entity
-│   │   └── entity/                 # Room entity classes
-│   └── repository/                 # Repository implementations (SightingRepository, ZoneRepository, etc.)
+│   │   ├── AppDatabase.kt          # Room database (v2)
+│   │   ├── dao/                    # 15+ DAOs including V3 (Safety, Hazard, Equipment)
+│   │   └── entity/                 # Room entities mirroring CoreData models
+│   └── repository/                 # Data logic (Sighting, Zone, Ranger, Task, etc.)
 ├── domain/
 │   └── model/
-│       ├── enums/                  # LantanaVariant, InfestationSize, TreatmentMethod, SyncStatus, TaskPriority
-│       └── SeasonalAlert.kt        # Seasonal guidance logic
+│       └── enums/                  # InvasiveSpecies, TreatmentMethod, InfestationSize, etc.
 ├── resources/
-│   └── PortStewartZones.kt         # Hardcoded patrol area coordinates and zone data
+│   ├── InvasiveSpeciesContent.kt   # Identification guide data
+│   └── PortStewartZones.kt         # Geographic region definitions
 ├── services/
-│   ├── auth/                       # PIN-based auth + EncryptedSharedPreferences
-│   ├── location/                   # FusedLocationProviderClient wrapper
-│   └── sync/                       # NearbyConnectionsManager (Nearby Connections API)
+│   ├── auth/                       # PIN-based session management
+│   ├── location/                   # GPS capture service
+│   └── sync/                       # Nearby Connections (Mesh) logic
 ├── ui/
-│   ├── app/                        # MainTabScreen, MoreScreen, AppNavigation
-│   ├── components/                 # Shared composables (VariantColourDot, SeasonalAlertBanner, etc.)
-│   ├── login/                      # LoginScreen with PIN keypad
-│   ├── map/                        # MapScreen, ZoneListScreen, ZoneDetailScreen, AddZoneScreen
-│   ├── more/                       # DashboardScreen, MeshSyncScreen, SettingsScreen, VariantGuideScreen, etc.
-│   ├── patrol/                     # PatrolScreen, ActivePatrolScreen
-│   ├── sighting/                   # SightingListScreen, SightingDetailScreen, LogSightingScreen
-│   ├── tasks/                      # TaskListScreen, AddTaskScreen
-│   └── theme/                      # M3 colour scheme, typography
-├── AppEnvironment.kt               # Hilt-injected app initialiser
-├── AppNavigation.kt                # Compose NavHost with all routes
-├── AuthManager.kt                  # Session management
-└── DemoSeeder.kt                   # Demo branch: pre-seeded realistic data
+│   ├── hub/                        # Hub grid, Handover, Conflict, Cloud Sync screens
+│   ├── map/                        # MapScreen, BloomCalendar, Zone management
+│   ├── patrol/                     # Checklist and active tracking
+│   ├── safety/                     # Safety timer and check-in UI (V3)
+│   ├── sighting/                   # Logging, Detail, Before/After photos
+│   └── theme/                      # Lama Lama Ranger design system
+└── demo/
+    └── DemoSeeder.kt               # Seeds 28+ records for 1:1 iOS parity
 ```
 
 ---
@@ -108,22 +81,12 @@ app/src/main/java/org/yac/llamarangers/
 |---|---|
 | UI | Jetpack Compose + Material Design 3 |
 | Navigation | Compose Navigation |
-| Local database | Room (SQLite) |
+| Local database | Room (SQLite) with Destructive Migration for Demo |
 | Dependency injection | Hilt |
 | Async | Kotlin Coroutines + StateFlow |
-| Maps | osmdroid (no API key required) |
-| Location | FusedLocationProviderClient |
+| Maps | osmdroid |
+| Media | CameraX + MediaRecorder (Voice Notes) |
 | Peer sync | Google Nearby Connections API |
-| Auth storage | EncryptedSharedPreferences |
-| Camera | CameraX |
-
----
-
-## Branches
-
-| Branch | Purpose |
-|---|---|
-| `main` | Demo build — pre-seeded with realistic data, simulated mesh sync animation |
 
 ---
 
@@ -132,7 +95,7 @@ app/src/main/java/org/yac/llamarangers/
 - Android Studio Meerkat or later (Windows, macOS, or Linux)
 - Android SDK 35 (compile), minSdk 26 (Android 8.0+)
 - JDK 17 — Android Studio's bundled JBR works out of the box
-- No external API keys required
+- No external API keys required (Fully offline-capable)
 
 ---
 
@@ -145,25 +108,15 @@ app/src/main/java/org/yac/llamarangers/
 
 ---
 
-## Building
+## Building & Running
 
 ```bash
 ./gradlew assembleDebug
 ```
 
-Or open the project in Android Studio and press Run. Android Studio's bundled JBR is used automatically — no extra configuration needed.
-
-> **macOS note:** If you have a newer system Java (e.g. Java 25) that conflicts with the Kotlin Gradle plugin, use the `macos` branch which includes the `org.gradle.java.home` workaround, or set it manually in your local `gradle.properties` (do not commit it).
-
----
-
-## Running the Demo
-
-1. Clone this repo and open in Android Studio
-2. Build and run on an emulator or device (API 26+)
-3. Log in as any ranger — PIN: `1234` for all demo accounts
-4. Data is pre-seeded on first launch: 6 zones, 28 sightings, 10 patrols, pesticide stocks, and tasks
-5. To reset: Settings → Reset App Data
+1. Log in with PIN: `1234`
+2. First launch automatically seeds rich demo data (6 zones, 28 sightings, 10 patrols, maintenance logs, and tasks).
+3. Reset data anytime in **Hub → Settings → Reset App Data**.
 
 Demo rangers:
 - **Alice Johnson** — Senior Ranger
@@ -174,7 +127,6 @@ Demo rangers:
 
 ## Academic Context
 
-This app was developed for the **EWB Challenge 2026** as part of unit **31265 Communications for IT Professionals** at UTS. The EWB (Engineers Without Borders) Challenge pairs university students with community organisations to address real development needs.
-
-**Partner organisation:** Yintjingga Aboriginal Corporation (YAC), Port Stewart, Cape York Peninsula, QLD
-**Problem domain:** Lantana camara weed management on Lama Lama Country
+Developed for the UTS **EWB UTS Challenge 2026** (31265 Communications for IT Professionals).
+**Partner:** Yintjingga Aboriginal Corporation (YAC)
+**Country:** Lama Lama Country, Port Stewart, QLD

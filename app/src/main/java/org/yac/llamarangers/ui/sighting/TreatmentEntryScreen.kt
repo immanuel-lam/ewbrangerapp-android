@@ -48,6 +48,10 @@ import org.yac.llamarangers.data.repository.TreatmentRepository
 import org.yac.llamarangers.domain.model.enums.TreatmentMethod
 import org.yac.llamarangers.service.auth.AuthManager
 import org.yac.llamarangers.ui.navigation.Screen
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.filled.Add
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -71,17 +75,24 @@ class TreatmentEntryViewModel @Inject constructor(
         method: TreatmentMethod,
         herbicideProduct: String,
         outcomeNotes: String,
+        afterPhotoFilenames: List<String>,
         hasFollowUp: Boolean,
         followUpDate: Long,
         onComplete: () -> Unit
     ) {
         val rangerId = authManager.currentRangerId.value?.toString() ?: return
         viewModelScope.launch {
+            var finalNotes = outcomeNotes
+            if (afterPhotoFilenames.isNotEmpty()) {
+                val prefix = "📷 After: ${afterPhotoFilenames.size} photo(s). "
+                finalNotes = prefix + outcomeNotes
+            }
+            
             val treatment = treatmentRepository.addTreatment(
                 sightingId = sightingId,
                 method = method.value,
                 herbicideProduct = herbicideProduct.ifBlank { null },
-                outcomeNotes = outcomeNotes.ifBlank { null },
+                outcomeNotes = finalNotes.ifBlank { null },
                 followUpDate = if (hasFollowUp) followUpDate else null,
                 rangerId = rangerId
             )
@@ -118,6 +129,7 @@ fun TreatmentEntryScreen(
     }
     var followUpDate by remember { mutableLongStateOf(defaultFollowUp) }
     var isSaving by remember { mutableStateOf(false) }
+    var afterPhotoFilenames by remember { mutableStateOf(listOf<String>()) }
 
     val dateFormat = remember { SimpleDateFormat("MMM d, yyyy", Locale.getDefault()) }
     val context = LocalContext.current
@@ -139,6 +151,7 @@ fun TreatmentEntryScreen(
                                 method = selectedMethod,
                                 herbicideProduct = herbicideProduct,
                                 outcomeNotes = outcomeNotes,
+                                afterPhotoFilenames = afterPhotoFilenames,
                                 hasFollowUp = hasFollowUp,
                                 followUpDate = followUpDate,
                                 onComplete = onNavigateBack
@@ -230,6 +243,48 @@ fun TreatmentEntryScreen(
                         minLines = 3,
                         maxLines = 6
                     )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // After Photos
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "After Photos (optional)",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "After photos",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        if (afterPhotoFilenames.isNotEmpty()) {
+                            Text(
+                                text = "${afterPhotoFilenames.size} attached",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .background(MaterialTheme.colorScheme.primaryContainer, shape = androidx.compose.foundation.shape.CircleShape)
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    TextButton(
+                        onClick = {
+                            afterPhotoFilenames = afterPhotoFilenames + "after_${java.util.UUID.randomUUID()}.heif"
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Attach After Photo")
+                    }
                 }
             }
 
