@@ -1,46 +1,21 @@
 package org.yac.llamarangers.ui.sighting
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -54,11 +29,6 @@ import org.yac.llamarangers.ui.components.VariantColourDot
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.ui.graphics.Color
 
 /**
  * Detailed view of a single sighting with treatments and zone assignment.
@@ -69,7 +39,8 @@ import androidx.compose.ui.graphics.Color
 fun SightingDetailScreen(
     viewModel: SightingDetailViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit = {},
-    onNavigateToTreatmentEntry: (String) -> Unit = {}
+    onNavigateToTreatmentEntry: (String) -> Unit = {},
+    onNavigateToTreatmentFollowUp: (String) -> Unit = {}
 ) {
     val sighting by viewModel.sighting.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -273,7 +244,10 @@ fun SightingDetailScreen(
                 )
             } else {
                 treatments.forEach { treatment ->
-                    TreatmentCard(treatment = treatment)
+                    TreatmentCard(
+                        treatment = treatment,
+                        onFollowUp = { onNavigateToTreatmentFollowUp(treatment.id) }
+                    )
                     if (treatment.outcomeNotes?.startsWith("📷 After:") == true) {
                         BeforeAfterCard(
                             sighting = s,
@@ -381,7 +355,7 @@ private fun ZonePickerSheet(
 }
 
 @Composable
-private fun TreatmentCard(treatment: TreatmentRecordEntity) {
+private fun TreatmentCard(treatment: TreatmentRecordEntity, onFollowUp: () -> Unit) {
     val method = TreatmentMethod.fromValue(treatment.method)
     val dateFormat = remember { SimpleDateFormat("MMM d, yyyy", Locale.getDefault()) }
 
@@ -418,6 +392,15 @@ private fun TreatmentCard(treatment: TreatmentRecordEntity) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+            }
+            
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                AssistChip(
+                    onClick = onFollowUp,
+                    label = { Text("Log Follow-Up", style = MaterialTheme.typography.labelSmall) },
+                    leadingIcon = { Icon(Icons.Default.History, null, modifier = Modifier.size(14.dp)) }
+                )
             }
         }
     }
@@ -546,7 +529,7 @@ private fun HStack(
     spacing: androidx.compose.ui.unit.Dp = 0.dp,
     content: @Composable RowScope.() -> Unit
 ) {
-    val arrangement = if (spacing > 0.dp) Arrangement.spacedBy(spacing) else horizontalArrangement
+    val arrangement = if (spacing.value > 0f) Arrangement.spacedBy(spacing) else horizontalArrangement
     Row(
         modifier = modifier,
         horizontalArrangement = arrangement,
@@ -554,5 +537,3 @@ private fun HStack(
         content = content
     )
 }
-
-

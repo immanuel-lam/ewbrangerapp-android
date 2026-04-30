@@ -60,7 +60,8 @@ import org.yac.llamarangers.ui.theme.RangerRed
 fun SettingsScreen(
     onNavigateBack: () -> Unit = {},
     onLoggedOut: () -> Unit = {},
-    viewModel: SettingsViewModel = hiltViewModel()
+    viewModel: SettingsViewModel = hiltViewModel(),
+    themeViewModel: org.yac.llamarangers.ui.theme.AppThemeViewModel = hiltViewModel()
 ) {
     val currentRangerName by viewModel.currentRangerName.collectAsStateWithLifecycle()
     val pendingSyncCount by viewModel.pendingSyncCount.collectAsStateWithLifecycle()
@@ -68,6 +69,7 @@ fun SettingsScreen(
     val isSyncing by viewModel.isSyncing.collectAsStateWithLifecycle()
     val recentRainFlagged by viewModel.recentRainFlagged.collectAsStateWithLifecycle()
     val tileStatus by viewModel.tileStatus.collectAsStateWithLifecycle()
+    val isRedLightMode by themeViewModel.isRedLightMode.collectAsStateWithLifecycle()
 
     var showEditName by remember { mutableStateOf(false) }
     var editedName by remember { mutableStateOf("") }
@@ -174,6 +176,18 @@ fun SettingsScreen(
                     Switch(
                         checked = recentRainFlagged,
                         onCheckedChange = { viewModel.toggleRecentRain() }
+                    )
+                }
+            )
+            HorizontalDivider()
+            
+            ListItem(
+                headlineContent = { Text("Red Light Mode (Night)") },
+                supportingContent = { Text("Preserves night vision") },
+                trailingContent = {
+                    Switch(
+                        checked = isRedLightMode,
+                        onCheckedChange = { themeViewModel.setRedLightMode(it) }
                     )
                 }
             )

@@ -38,7 +38,9 @@ class SightingRepository @Inject constructor(
         notes: String?,
         photoFilenames: List<String>,
         rangerId: String,
-        deviceId: String
+        deviceId: String,
+        infestationAreaEstimate: String? = null,
+        voiceNotePath: String? = null
     ): SightingLogEntity {
         val now = System.currentTimeMillis()
         val id = UUID.randomUUID().toString()
@@ -52,12 +54,12 @@ class SightingRepository @Inject constructor(
             horizontalAccuracy = horizontalAccuracy,
             variant = variant.value,
             infestationSize = infestationSize.value,
-            infestationAreaEstimate = null,
+            infestationAreaEstimate = infestationAreaEstimate,
             notes = notes,
             photoFilenames = photoFilenames,
             deviceId = deviceId,
             serverId = null,
-            voiceNotePath = null,
+            voiceNotePath = voiceNotePath,
             syncStatus = SyncStatus.PENDING_CREATE.value,
             rangerId = rangerId,
             infestationZoneId = null

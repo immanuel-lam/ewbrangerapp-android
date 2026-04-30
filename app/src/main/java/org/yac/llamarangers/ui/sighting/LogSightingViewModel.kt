@@ -53,6 +53,12 @@ class LogSightingViewModel @Inject constructor(
     private val _photoFilenames = MutableStateFlow<List<String>>(emptyList())
     val photoFilenames: StateFlow<List<String>> = _photoFilenames.asStateFlow()
 
+    private val _voiceNotePath = MutableStateFlow<String?>(null)
+    val voiceNotePath: StateFlow<String?> = _voiceNotePath.asStateFlow()
+
+    private val _areaEstimate = MutableStateFlow<String?>(null)
+    val areaEstimate: StateFlow<String?> = _areaEstimate.asStateFlow()
+
     private val _isSaving = MutableStateFlow(false)
     val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
 
@@ -100,6 +106,14 @@ class LogSightingViewModel @Inject constructor(
         _photoFilenames.value = _photoFilenames.value + filename
     }
 
+    fun setVoiceNotePath(path: String?) {
+        _voiceNotePath.value = path
+    }
+
+    fun setAreaEstimate(estimate: String?) {
+        _areaEstimate.value = estimate
+    }
+
     private fun captureLocation() {
         viewModelScope.launch {
             val location = locationManager.captureLocation()
@@ -143,7 +157,9 @@ class LogSightingViewModel @Inject constructor(
                     notes = finalNotes.ifBlank { null },
                     photoFilenames = _photoFilenames.value,
                     rangerId = rangerId,
-                    deviceId = "android"
+                    deviceId = "android",
+                    infestationAreaEstimate = _areaEstimate.value,
+                    voiceNotePath = _voiceNotePath.value
                 )
                 _didSave.value = true
             } catch (e: Exception) {

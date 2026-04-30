@@ -2,7 +2,7 @@ package org.yac.llamarangers.ui.navigation
 
 /**
  * Sealed class defining all navigation routes in the app.
- * Ports iOS NavigationStack/NavigationLink structure.
+ * Ports iOS v3 Navigation structure.
  */
 sealed class Screen(val route: String) {
     // Auth
@@ -13,10 +13,10 @@ sealed class Screen(val route: String) {
 
     // Tab destinations (displayed inside MainTabs bottom nav)
     data object Map : Screen("map")
-    data object SightingList : Screen("sighting_list")
-    data object Patrol : Screen("patrol")
-    data object TaskList : Screen("task_list")
-    data object More : Screen("more")
+    data object Activity : Screen("activity")
+    data object SpeciesGuide : Screen("species_guide")
+    data object Safety : Screen("safety")
+    data object Hub : Screen("hub")
 
     // Sighting flow
     data object LogSighting : Screen("log_sighting")
@@ -24,6 +24,13 @@ sealed class Screen(val route: String) {
         companion object {
             const val ROUTE = "sighting_detail/{sightingId}"
             const val ARG_SIGHTING_ID = "sightingId"
+        }
+    }
+
+    data class TreatmentFollowUp(val treatmentId: String) : Screen("treatment_follow_up/$treatmentId") {
+        companion object {
+            const val ROUTE = "treatment_follow_up/{treatmentId}"
+            const val ARG_TREATMENT_ID = "treatmentId"
         }
     }
 
@@ -45,7 +52,7 @@ sealed class Screen(val route: String) {
     }
     data object AddZone : Screen("add_zone")
 
-    // More menu destinations
+    // Hub destinations
     data object Dashboard : Screen("dashboard")
     data object PesticideList : Screen("pesticide_list")
     data class PesticideDetail(val pesticideId: String) : Screen("pesticide_detail/$pesticideId") {
@@ -57,15 +64,27 @@ sealed class Screen(val route: String) {
     data object LogUsage : Screen("log_usage")
     data object Settings : Screen("settings")
     data object MeshSync : Screen("mesh_sync")
-    data object VariantGuide : Screen("variant_guide")
-    data class VariantDetail(val variantValue: String) : Screen("variant_detail/$variantValue") {
+    data object CloudSync : Screen("cloud_sync")
+    data object ShiftHandover : Screen("shift_handover")
+    data object ConflictResolver : Screen("conflict_resolver")
+    data object RangerStatus : Screen("ranger_status")
+    data object EquipmentList : Screen("equipment_list")
+    data object AddEquipment : Screen("add_equipment")
+    data object HazardLog : Screen("hazard_log")
+    data object BloomCalendar : Screen("bloom_calendar")
+
+    // Species Guide
+    data class SpeciesDetail(val speciesValue: String) : Screen("species_detail/$speciesValue") {
         companion object {
-            const val ROUTE = "variant_detail/{variantValue}"
-            const val ARG_VARIANT_VALUE = "variantValue"
+            const val ROUTE = "species_detail/{speciesValue}"
+            const val ARG_SPECIES_VALUE = "speciesValue"
         }
     }
     data object ControlProtocol : Screen("control_protocol")
 
-    // Patrol
+    // Tasks
     data object AddTask : Screen("add_task")
+    
+    // Hazards
+    data object LogHazard : Screen("log_hazard")
 }

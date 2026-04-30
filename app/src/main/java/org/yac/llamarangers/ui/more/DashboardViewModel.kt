@@ -81,12 +81,16 @@ class DashboardViewModel @Inject constructor(
     private val _openFollowUpTasks = MutableStateFlow(0)
     val openFollowUpTasks: StateFlow<Int> = _openFollowUpTasks.asStateFlow()
 
+    private val _currentRanger = MutableStateFlow<org.yac.llamarangers.data.local.entity.RangerProfileEntity?>(null)
+    val currentRanger: StateFlow<org.yac.llamarangers.data.local.entity.RangerProfileEntity?> = _currentRanger.asStateFlow()
+
     init {
         load()
     }
 
     fun load() {
         viewModelScope.launch {
+            _currentRanger.value = rangerDao.fetchCurrentDevice()
             val now = System.currentTimeMillis()
             val calendar = Calendar.getInstance()
             calendar.set(Calendar.DAY_OF_MONTH, 1)

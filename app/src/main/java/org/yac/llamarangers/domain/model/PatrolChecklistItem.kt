@@ -6,5 +6,6 @@ data class PatrolChecklistItem(
     val id: String = UUID.randomUUID().toString(),
     val label: String,
     val isComplete: Boolean = false,
-    val completedAt: Long? = null // epoch millis
+    val completedAt: Long? = null, // epoch millis
+    val timeEstimateMins: Int = 0
 )
